@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admit Card Search</title> 
+<title>Admit Card Search</title>  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
 <style>
 body{
@@ -17,7 +18,8 @@ align-items:center;
 
 /* FORM CARD */
 .container{
-width:420px;
+width:95%;
+max-width:420px;
 background:white;
 padding:30px;
 border-radius:15px;
@@ -74,7 +76,8 @@ align-items:center;
 
 .card{
 background:white;
-width:800px;
+width:95%;
+max-width:800px;
 padding:25px;
 position:relative;
 border:3px solid #000;
@@ -364,7 +367,10 @@ document.getElementById("popup").style.display="flex";
 function closePopup(){
 document.getElementById("popup").style.display="none";
 }
-
+table{
+display:block;
+overflow-x:auto;
+}
 </script>
 
 </body>
