@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admit Card Search</title>
+
+<style>
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+/* FORM CARD */
+.container{
+width:420px;
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.header{
+text-align:center;
+margin-bottom:20px;
+}
+
+.header h2{
+margin:0;
+color:#1e3c72;
+}
+
+.header p{
+margin:0;
+color:#555;
+}
+
+/* INPUT */
+select,input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:12px;
+background:linear-gradient(135deg,#2a5298,#1e3c72);
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+/* POPUP */
+.popup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.card{
+background:white;
+width:800px;
+padding:25px;
+position:relative;
+border:3px solid #000;
+}
+
+/* CLOSE */
+.close{
+position:absolute;
+top:10px;
+right:15px;
+font-size:22px;
+cursor:pointer;
+color:red;
+}
+
+/* LEFT LOGO */
+.logo-left{
+position:absolute;
+top:20px;
+left:20px;
+width:80px;
+}
+
+/* WATERMARK */
+.watermark{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+opacity:0.07;
+width:300px;
+z-index:0;
+}
+
+.content{
+position:relative;
+z-index:2;
+}
+
+.header2{
+text-align:center;
+padding-left:90px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+table,th,td{
+border:1px solid black;
+padding:6px;
+text-align:center;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<div class="header">
+<h2>SUPER EDUCATED CLASS</h2>
+<p>Admit Card Portal</p>
+</div>
+
+<select id="year">
+<option value="2026">2026</option>
+</select>
+
+<select id="class">
+<option value="LKG">LKG</option>
+<option value="UKG">UKG</option>
+<option value="4">Class 4</option>
+<option value="5">Class 5</option>
+<option value="6">Class 6</option>
+<option value="7">Class 7</option>
+<option value="8">Class 8</option>
+
+</select>
+
+<select id="term">
+<option value="third">Third Term</option>
+</select>
+
+<input type="text" id="name" placeholder="Enter Student Name">
+
+<button onclick="showAdmit()">🔍 SEARCH</button>
+
+</div>
+
+<!-- POPUP -->
+<div id="popup" class="popup">
+<div class="card">
+
+<span class="close" onclick="closePopup()">✖</span>
+
+<!-- LOGO ONLY HERE -->
+<img src="https://i.postimg.cc/hPpH9mRt/logo.png" class="logo-left">
+<img src="https://i.postimg.cc/hPpH9mRt/logo.png" class="watermark">
+
+<div id="admitContent" class="content"></div>
+
+</div>
+</div>
+
+<script>
+
+const admitData = {
+"2026":{
+"third":{
+
+"UKG":{
+"1":{
+n:"AARADHYA PRAJAPATI",
+f:"BABULAL PRAJAPATI",
+a:"026405165B",
+subjects:[
+{sub:"ENGLISH",code:"1001",date:"19-03-2026",day:"SUNDAY"},
+{sub:"HINDI",code:"1210",date:"20-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"1317",date:"21-03-2026",day:"THURSDAY"},
+{sub:"ART",code:"2031",date:"22-03-2026",day:"SATURDAY"}
+]
+}
+},
+
+"4":{
+"2":{
+n:"ANSHIKA PRAJAPATI",
+f:"MUSAFIR PRAJAPATI",
+a:"026405166A",
+subjects:[
+{sub:"ENGLISH",code:"1101",date:"19-03-2026",day:"SUNDAY"},
+{sub:"SCIENCE",code:"1010",date:"20-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"2017",date:"21-03-2026",day:"THURSDAY"},
+{sub:"ART",code:"2011",date:"22-03-2026",day:"SATURDAY"}
+]
+},
+
+"7":{
+n:"RAJ PAL",
+f:"VIJAY PAL",
+a:"026405170F",
+subjects:[
+{sub:"ENGLISH",code:"1101",date:"19-03-2026",day:"SUNDAY"},
+{sub:"SCIENCE",code:"0109",date:"20-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"2018",date:"21-03-2026",day:"THURSDAY"},
+{sub:"G.K",code:"2010",date:"22-03-2026",day:"SATURDAY"}
+]
+}
+},
+
+"6":{
+"3":{
+n:"SHIMANSHU PRAJAPATI",
+f:"GUDDU PRAJAPATI",
+a:"026405167S",
+subjects:[
+{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
+{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
+{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
+]
+},
+
+"4":{
+n:"AMAN PAL",
+f:"LAL BAHADUR PAL",
+a:"026405168C",
+subjects:[
+{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
+{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
+{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
+]
+},
+
+"6":{
+n:"SARVODAY PRAJAPATI",
+f:"PRAJAPATI PRAJAPATI",
+a:"026405166E",
+subjects:[
+{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
+{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
+{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
+]
+}
+},
+
+"7":{
+"3":{
+n:"ANAND PRAJAPATI",
+f:"DINESH PRAJAPATI",
+a:"026405169D",
+subjects:[
+{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
+{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
+{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
+{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
+]
+}
+}
+
+}
+}
+};
+function showAdmit(){
+
+let y=document.getElementById("year").value;
+let c=document.getElementById("class").value;
+let t=document.getElementById("term").value;
+let name=document.getElementById("name").value.toUpperCase();
+
+let classData=admitData[y]?.[t]?.[c];
+
+let student=null;
+let roll=null;
+
+for(let r in classData){
+if(classData[r].n===name){
+student=classData[r];
+roll=r;
+break;
+}
+}
+
+if(!student){
+alert("Student Not Found");
+return;
+}
+
+let rows="";
+student.subjects.forEach(s=>{
+rows+=`<tr>
+<td>${s.sub}</td>
+<td>${s.code}</td>
+<td>${s.date}</td>
+<td>${s.day}</td>
+</tr>`;
+});
+
+document.getElementById("admitContent").innerHTML=`
+
+<div class="header2">
+<h2>SUPER EDUCATED CLASS</h2>
+<p>SHEKHPUR DAUD AZAMGARH</p>
+<h3>${t.toUpperCase()} TERM EXAMINATION ${y}</h3>
+</div>
+
+<hr>
+
+<table>
+<tr>
+<td><b>NAME:</b> ${student.n}</td>
+<td><b>CLASS:</b> ${c}</td>
+<td><b>ROLL NO:</b> ${roll}</td>
+</tr>
+
+<tr>
+<td><b>FATHER NAME:</b> ${student.f}</td>
+<td colspan="2"><b>ADMIT CARD ID:</b> ${student.a}</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<th>SUBJECT</th>
+<th>PAPER CODE</th>
+<th>DATE</th>
+<th>DAY</th>
+</tr>
+
+${rows}
+
+</table>
+
+<br>
+<p style="text-align:right">Teacher Signature</p>
+
+`;
+
+document.getElementById("popup").style.display="flex";
+}
+
+function closePopup(){
+document.getElementById("popup").style.display="none";
+}
+
+</script>
+
+</body>
+</html>
