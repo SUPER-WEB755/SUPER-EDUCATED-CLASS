@@ -1,377 +1,1649 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Admit Card Search</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Educated Class - Advanced Multi-Mode Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .watermark-bg { position: relative; }
+        .watermark-bg::before {
+            content: "";
+            background-image: url('logo.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 25%;
+            opacity: 0.03;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* Optimized Matrix Subject Table */
+        .subject-table th {
+            border: 1px solid #1e293b;
+            padding: 8px 4px;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
 
-<style>
-body{
-margin:0;
-font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#1e3c72,#2a5298);
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
-}
+        .subject-table td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 4px;
+            color: #000000;
+            font-size: 13px;
+        }
+        
+        /* Robust Print Media Engine */
+        @media print {
+            body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+            nav, .no-print, button, form, #search-portal, #admin-dashboard, #cardModal, #ecaModal, #printSelectionModal, #authModal { 
+                display: none !important; 
+                visibility: hidden !important; 
+            }
+            #printBatchContainer { 
+                display: block !important; 
+                visibility: visible !important; 
+                position: absolute !important;
+                left: 0 !important; 
+                top: 0 !important; 
+                width: 100% !important; 
+                margin: 0 !important;
+                padding: 0.3cm !important;
+            }
+            #printBatchContainer * { 
+                visibility: visible !important; 
+            }
+            
+            /* Horizontal (Landscape) layout grid to fit exactly 3 admit cards per page */
+            @page { size: A4 landscape; margin: 0.3cm; }
+            
+            .print-grid-layout {
+                display: grid !important;
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+                width: 100% !important;
+                page-break-inside: avoid;
+            }
 
-/* FORM */
-.container{
-width:95%;
-max-width:420px;
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 10px 30px rgba(0,0,0,0.3);
-}
+            .print-card-wrapper {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-bottom: 0 !important;
+            }
 
-.header{text-align:center;margin-bottom:20px;}
-
-select,input{
-width:100%;
-padding:12px;
-margin:8px 0;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-button{
-width:100%;
-padding:12px;
-background:#1e3c72;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-}
-
-/* POPUP */
-.popup{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.6);
-display:none;
-justify-content:center;
-align-items:center;
-}
-
-.card{
-background:white;
-width:95%;
-max-width:800px;
-padding:25px;
-position:relative;
-border:3px solid #000;
-}
-
-.close{
-position:absolute;
-top:10px;
-right:15px;
-font-size:22px;
-cursor:pointer;
-color:red;
-}
-
-/* LOGO */
-.logo-left{
-position:absolute;
-top:20px;
-left:20px;
-width:80px;
-}
-
-.watermark{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-opacity:0.07;
-width:300px;
-}
-
-.content{
-position:relative;
-z-index:2;
-}
-
-.header2{
-text-align:center;
-padding-left:90px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-}
-
-table,th,td{
-border:1px solid black;
-padding:6px;
-text-align:center;
-}
-
-/* MOBILE */
-@media(max-width:600px){
-.card{padding:15px;}
-.logo-left{width:60px;}
-.header2{padding-left:70px;}
-table{display:block;overflow-x:auto;}
-}
-</style>
-
+            /* Forces page break after exactly 3 cards (1st page = 3, 2nd page = 6) */
+            .print-card-wrapper:nth-child(3n) {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="bg-slate-100 font-sans antialiased text-slate-900" onload="initLiveHandlers()">
 
-<div class="container">
-<div class="header">
-<h2>SUPER EDUCATED CLASS</h2>
-<p>Admit Card Portal</p>
-</div>
+    <nav class="bg-indigo-950 text-white p-4 shadow-xl flex justify-between items-center border-b-2 border-amber-500 no-print">
+        <div class="flex items-center space-x-3">
+            <img src="logo.png" alt="Logo" class="w-11 h-11 rounded-full bg-white p-0.5 shadow-md object-contain">
+            <div>
+                <span class="font-black text-sm tracking-wider block md:text-base">SUPER EDUCATED CLASS</span>
+                <span class="text-[11px] text-indigo-200 block">Shekhpur Daud, Azamgarh</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="authToggleBtn" onclick="openAdminAuth()" class="bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold px-4 py-1.5 rounded text-xs tracking-wide transition shadow-md">
+                🔑 Teacher Panel
+            </button>
+        </div>
+    </nav>
 
-<select id="year">
-<option value="2026">2026</option>
-</select>
+    <div id="ecaModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white w-full max-w-3xl rounded-xl p-5 shadow-2xl border-t-4 border-amber-500 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2 mb-3">
+                <h3 class="text-xs font-black text-indigo-950 uppercase tracking-wide">✍️ Verification Table Status - Review & Approve Matrix</h3>
+                <button onclick="closeEcaModal()" class="text-slate-400 text-lg font-bold hover:text-rose-600 transition-colors">✖</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-slate-50 p-3 rounded border grid grid-cols-3 gap-2 items-center">
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-700 uppercase">Upload Master Signature Image</label>
+                        <input type="file" accept="image/*" onchange="processEcaSignature(this)" class="w-full mt-1 text-[11px] border p-1 bg-white">
+                    </div>
+                    <div class="bg-white border p-1 rounded flex flex-col items-center justify-center min-h-[60px]">
+                        <img id="ecaSignaturePreview" src="" class="h-12 max-w-full object-contain hidden" alt="ECA Sign">
+                        <span id="ecaSignStatus" class="text-[10px] text-slate-400 italic">No signature</span>
+                    </div>
+                </div>
 
-<select id="class">
-<option value="">All Class</option>
-<option value="UKG">Class UKG</option>
-<option value="4">Class 4</option>
-<option value="6">Class 6</option>
-<option value="7">Class 7</option>
-</select>
+                <div class="border pt-2 rounded p-3 bg-slate-50">
+                    <span class="text-xs font-black text-indigo-950 block mb-2 uppercase">Filter Target Verification Queue</span>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-600 uppercase">Year</label>
+                            <select id="appYear" onchange="loadProfilesForApprovalReview()" class="w-full p-2 border text-xs bg-white font-bold">
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-600 uppercase">Exam Term</label>
+                            <select id="appTerm" onchange="loadProfilesForApprovalReview()" class="w-full p-2 border text-xs bg-white font-bold">
+                                <option value="FIRST TERM">First Term</option>
+                                <option value="SECOND TERM">Second Term</option>
+                                <option value="THIRD TERM">Third Term</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="approvalReviewContainer" class="space-y-2 max-h-60 overflow-y-auto bg-white p-2 border rounded text-xs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<select id="term">
-<option value="third">Third Term</option>
-</select>
+    <div id="authModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl border-t-4 border-indigo-950">
+            <h3 class="text-sm font-black text-indigo-950 uppercase tracking-wide mb-4 text-center">🔒 Teacher Authentication</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase">User ID</label>
+                    <input type="text" id="userInput" class="w-full mt-1 p-2 border rounded text-sm font-semibold" value="SEC2026">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase">Password</label>
+                    <input type="password" id="passInput" class="w-full mt-1 p-2 border rounded text-sm" value="Super123@">
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button onclick="closeAdminAuth()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded text-xs uppercase">Cancel</button>
+                    <button onclick="verifyLogin()" class="flex-1 bg-indigo-950 text-white font-bold py-2 rounded text-xs uppercase tracking-wider">Verify</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<input type="text" id="name" placeholder="Enter Student Name">
+    <div id="printSelectionModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl border-t-4 border-amber-500">
+            <div class="flex justify-between items-center border-b pb-2 mb-4">
+                <h3 class="text-xs font-black text-indigo-950 uppercase tracking-wide">🖨️ Batch Print Configuration</h3>
+                <button onclick="closePrintSelectionModal()" class="text-slate-400 text-lg font-bold hover:text-rose-600 transition-colors">✖</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase">Select Target Year</label>
+                    <select id="modalPrintYear" class="w-full mt-1 p-2 border text-xs bg-slate-50 font-black text-indigo-950 rounded">
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-700 uppercase">Select Exam Term</label>
+                    <select id="modalPrintTerm" class="w-full mt-1 p-2 border text-xs bg-slate-50 font-black text-indigo-950 rounded">
+                        <option value="FIRST TERM">First Term</option>
+                        <option value="SECOND TERM">Second Term</option>
+                        <option value="THIRD TERM">Third Term</option>
+                    </select>
+                </div>
+                <div class="pt-3 flex space-x-2">
+                    <button onclick="closePrintSelectionModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded text-xs uppercase">Cancel</button>
+                    <button onclick="executeModalBatchPrintTrigger()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-black py-2 rounded text-xs uppercase tracking-wider shadow">🖨️ Admit Card Print All</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<button onclick="showAdmit()">🔍 SEARCH</button>
-</div>
+    <div id="search-portal" class="max-w-md mx-auto mt-12 p-6 bg-white rounded-2xl shadow-xl border-t-[6px] border-indigo-950 no-print">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 mx-auto mb-2 bg-white rounded-full shadow border p-0.5 flex items-center justify-center">
+                <img src="logo.png" alt="Logo" class="w-full h-full rounded-full object-contain">
+            </div>
+            <h2 class="text-xl font-black text-indigo-950 tracking-wide uppercase">Student Admit Pass Portal</h2>
+            <p class="text-xs text-slate-500 font-medium">Enter details to generate your verified exam card</p>
+        </div>
 
-<!-- POPUP -->
-<div id="popup" class="popup">
-<div class="card">
+        <form onsubmit="searchAdmitCard(event)" class="space-y-4">
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase">Year</label>
+                    <select id="srcYear" class="w-full mt-1 p-2.5 border rounded bg-slate-50 text-xs font-bold">
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase">Term</label>
+                    <select id="srcTerm" class="w-full mt-1 p-2.5 border rounded bg-slate-50 text-xs font-bold">
+                        <option value="FIRST TERM">First Term</option>
+                        <option value="SECOND TERM">Second Term</option>
+                        <option value="THIRD TERM">Third Term</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase">Class</label>
+                <select id="srcClass" class="w-full mt-1 p-2.5 border rounded bg-slate-50 text-xs font-bold">
+                    <option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option>
+                    <option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option>
+                    <option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option>
+                    <option value="10">Class 10</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase">Roll Number</label>
+                <input type="number" id="srcRoll" placeholder="e.g. 4" class="w-full mt-1 p-2.5 border rounded text-sm font-bold" required>
+            </div>
+            <button type="submit" class="w-full bg-indigo-950 text-white font-black py-3 rounded-lg hover:bg-indigo-900 tracking-wider text-xs uppercase transition shadow">
+                🔍 Generate Admit Card
+            </button>
+        </form>
+    </div>
 
-<span class="close" onclick="closePopup()">✖</span>
+    <div id="admin-dashboard" class="hidden max-w-7xl mx-auto mt-6 p-4 no-print">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow border mb-6 gap-2">
+            <div>
+                <h2 class="text-lg font-black text-indigo-950 uppercase tracking-wide">Admit Card Configuration Center</h2>
+                <p class="text-xs text-slate-500">Register Profiles, Draft Timetables, and Approve Global Deployments</p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="openEcaModal()" class="bg-indigo-950 hover:bg-indigo-900 text-amber-400 border border-amber-500 font-black px-3 py-1.5 rounded text-xs tracking-wide transition shadow">
+                    📋 Verification Table Status
+                </button>
+                <button onclick="switchToStudentView()" class="bg-slate-200 text-slate-700 font-bold px-4 py-1.5 rounded text-xs uppercase">
+                    ← Exit Board
+                </button>
+            </div>
+        </div>
 
-<img src="https://i.postimg.cc/hPpH9mRt/logo.png" class="logo-left">
-<img src="https://i.postimg.cc/hPpH9mRt/logo.png" class="watermark">
+        <div class="grid grid-cols-5 gap-1.5 mb-6">
+            <button onclick="switchTab('tab-add-student')" id="btn-tab-add-student" class="tab-btn bg-indigo-950 text-white font-black py-3 rounded text-[11px] uppercase tracking-wider"><h3>👤 0. Add Student</h3></button>
+            <button onclick="switchTab('tab-create-single')" id="btn-tab-create-single" class="tab-btn bg-gray-200 text-gray-700 font-black py-3 rounded text-[11px] uppercase tracking-wider"><h3>🗂️ 1. Create & Edit Card</h3></button>
+            <button onclick="switchTab('tab-create')" id="btn-tab-create" class="tab-btn bg-gray-200 text-gray-700 font-black py-3 rounded text-[11px] uppercase tracking-wider"><h3>🎴 1b. Bulk Create Card</h3></button>
+            <button onclick="switchTab('tab-drafts')" id="btn-tab-drafts" class="tab-btn bg-gray-200 text-gray-700 font-black py-3 rounded text-[11px] uppercase tracking-wider"><h3>👁️ 2. View Draft List</h3></button>
+            <div class="flex gap-1">
+                <button onclick="switchTab('tab-publish')" id="btn-tab-publish" class="flex-1 bg-gray-200 text-gray-700 font-black py-3 rounded text-[11px] uppercase tracking-wider"><h3>📢 3. Public Settings</h3></button>
+                <button onclick="openPrintSelectionModal()" class="bg-amber-500 hover:bg-amber-600 text-indigo-950 font-black px-3 rounded text-[11px] uppercase tracking-wider transition shadow flex items-center justify-center">🖨️ Admit Card Print All</button>
+            </div>
+        </div>
 
-<div id="admitContent" class="content"></div>
+        <div id="tab-add-student" class="tab-content block max-w-xl mx-auto bg-white p-6 rounded-xl shadow border space-y-4">
+            <h3 class="text-xs font-black text-indigo-950 uppercase tracking-widest border-b pb-2">👤 Register New Student Profile</h3>
+            
+            <!-- NEW SMART DATA FETCH ENGINE FOR AUTOFILL -->
+            <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-xs space-y-2">
+                <span class="font-black text-indigo-950 block uppercase">🔄 Autofill From Previous Term/Year Data:</span>
+                <div class="grid grid-cols-4 gap-1.5 items-end">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-600 uppercase">Search Class</label>
+                        <select id="fetchStuClass" class="w-full mt-0.5 p-1 border rounded bg-white font-bold">
+                            <option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option>
+                            <option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option>
+                            <option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-600 uppercase">Search Term</label>
+                        <select id="fetchStuTerm" class="w-full mt-0.5 p-1 border rounded bg-white font-bold">
+                            <option value="FIRST TERM">1st Term</option>
+                            <option value="SECOND TERM">2nd Term</option>
+                            <option value="THIRD TERM">3rd Term</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-600 uppercase">Roll No</label>
+                        <input type="number" id="fetchStuRoll" placeholder="e.g. 4" class="w-full mt-0.5 p-1 border rounded font-bold">
+                    </div>
+                    <button type="button" onclick="autoLoadPreviousStudentProfileData()" class="bg-amber-500 hover:bg-amber-600 text-indigo-950 font-black p-1.5 rounded uppercase tracking-wide transition shadow text-[10px]">
+                        ⚡ Fetch & Fill
+                    </button>
+                </div>
+            </div>
 
-</div>
-</div>
+            <form onsubmit="handleStudentRegistration(event)" class="space-y-3">
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Year</label>
+                        <select id="regStuYear" class="w-full mt-0.5 p-2 border text-xs bg-slate-50 font-bold"><option value="2026">2026</option></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Class Block</label>
+                        <select id="regStuClass" class="w-full mt-0.5 p-2 border text-xs bg-slate-50 font-bold">
+                            <option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option>
+                            <option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option>
+                            <option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Exam Term</label>
+                        <select id="regStuTerm" class="w-full mt-0.5 p-2 border text-xs bg-slate-50 font-bold">
+                            <option value="FIRST TERM">First Term</option>
+                            <option value="SECOND TERM">Second Term</option>
+                            <option value="THIRD TERM">Third Term</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-bold text-slate-600 uppercase">Full Name</label>
+                        <input type="text" id="regStuName" placeholder="Student Name" class="w-full mt-0.5 p-2 border text-xs font-bold rounded" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-600 uppercase">Roll Number</label>
+                        <input type="number" id="regStuRoll" placeholder="e.g. 4" class="w-full mt-0.5 p-2 border text-xs font-bold rounded" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-600 uppercase">Father's Name</label>
+                        <input type="text" id="regStuFather" class="w-full mt-0.5 p-2 border text-xs rounded">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-600 uppercase">Mother's Name</label>
+                        <input type="text" id="regStuMother" class="w-full mt-0.5 p-2 border text-xs rounded">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-600 uppercase">Gender</label>
+                        <select id="regStuGender" class="w-full mt-0.5 p-2 border text-xs rounded bg-white">
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-600 uppercase">Date of Birth</label>
+                    <input type="date" id="regStuDob" class="w-full mt-0.5 p-2 border text-xs rounded">
+                </div>
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded border">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-600 block uppercase">Upload Photo</label>
+                        <input type="file" accept="image/*" onchange="encodeImgToBase64(this, 'stuRegPhotoB64')" class="w-full text-[10px] mt-1">
+                        <input type="hidden" id="stuRegPhotoB64" value="">
+                        <div id="stuRegPhotoPreviewContainer" class="mt-1 hidden"><span class="text-[9px] text-emerald-600 font-bold">✓ Image Loaded</span></div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-600 block uppercase">Candidate Sign</label>
+                        <input type="file" accept="image/*" onchange="encodeImgToBase64(this, 'stuRegSignB64')" class="w-full text-[10px] mt-1">
+                        <input type="hidden" id="stuRegSignB64" value="">
+                        <div id="stuRegSignPreviewContainer" class="mt-1 hidden"><span class="text-[9px] text-emerald-600 font-bold">✓ Signature Loaded</span></div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded text-xs uppercase tracking-wider shadow">👤 Save Student Profile</button>
+            </form>
+        </div>
 
-<script>
+        <div id="tab-create-single" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow border space-y-3">
+                <h3 class="text-xs font-black text-indigo-950 uppercase tracking-widest border-b pb-1">🗂️ Card & Personal Details Editor</h3>
+                <div class="grid grid-cols-3 gap-1">
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Year</label>
+                        <select id="sngYear" onchange="populateStudentNameDropdown()" class="w-full p-1 border text-xs font-bold bg-slate-50"><option value="2026">2026</option></select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Class</label>
+                        <select id="sngClass" onchange="populateStudentNameDropdown()" class="w-full p-1 border text-xs font-bold bg-slate-50">
+                            <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option>
+                            <option value="4">4th</option><option value="5">5th</option><option value="6">6th</option>
+                            <option value="7">7th</option><option value="8">8th</option><option value="9">9th</option>
+                            <option value="10">10th</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Term</label>
+                        <select id="sngTerm" onchange="populateStudentNameDropdown()" class="w-full p-1 border text-xs font-bold bg-slate-50">
+                            <option value="FIRST TERM">1st</option><option value="SECOND TERM">2nd</option><option value="THIRD TERM">3rd</option>
+                        </select>
+                    </div>
+                </div>
 
-/* DATA */
-const admitData={
-"2026":{
-"third":{
+                <div>
+                    <label class="block text-[10px] font-black text-indigo-950 uppercase">👤 Select Student Profile:</label>
+                    <select id="sngNameDropdown" onchange="syncSelectedStudentDataFields()" class="w-full mt-1 p-2 border rounded bg-amber-50 font-black text-xs text-indigo-950">
+                        <option value="">-- Choose Student --</option>
+                    </select>
+                </div>
 
-"UKG":{
-"1":{
-n:"AARADHYA PRAJAPATI",
-f:"BABULAL PRAJAPATI",
-a:"026405165B",
-subjects:[
-{sub:"ENGLISH",code:"1001",date:"15-03-2026",day:"SUNDAY"},
-{sub:"HINDI",code:"1210",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"1317",date:"19-03-2026",day:"THURSDAY"},
-{sub:"ART",code:"2031",date:"21-03-2026",day:"SATURDAY"}
-]
-}
-},
+                <form onsubmit="handleSingleDraftSubmission(event)" class="space-y-2">
+                    <div class="bg-slate-50 p-2.5 rounded border space-y-2">
+                        <span class="text-[10px] font-black text-indigo-950 block uppercase">✏️ Edit Personal Details Below:</span>
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-600 block uppercase">Student Name</label>
+                            <input type="text" id="sngEditName" class="w-full p-1 border text-xs font-bold rounded" oninput="syncSingleCardLivePreviewPanel()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-1">
+                            <div>
+                                <label class="text-[9px] font-bold text-slate-600 block uppercase">Father Name</label>
+                                <input type="text" id="sngEditFather" class="w-full p-1 border text-xs rounded" oninput="syncSingleCardLivePreviewPanel()">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-slate-600 block uppercase">Mother Name</label>
+                                <input type="text" id="sngEditMother" class="w-full p-1 border text-xs rounded">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1">
+                            <div>
+                                <label class="text-[9px] font-bold text-slate-600 block uppercase">Roll No</label>
+                                <input type="number" id="sngEditRoll" class="w-full p-1 border text-xs font-bold rounded" oninput="syncSingleCardLivePreviewPanel()">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-bold text-slate-600 block uppercase">Gender</label>
+                                <select id="sngEditGender" class="w-full p-1 border text-xs rounded bg-white">
+                                    <option value="MALE">Male</option><option value="FEMALE">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-600 block uppercase">Date of Birth</label>
+                            <input type="date" id="sngEditDob" class="w-full p-1 border text-xs rounded" onchange="syncSingleCardLivePreviewPanel()">
+                        </div>
+                        
+                        <!-- Photo & Signature Edit Controls inside Edit Mode -->
+                        <div class="grid grid-cols-2 gap-1 pt-1 border-t">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-600 block uppercase">Edit Photo</label>
+                                <input type="file" accept="image/*" onchange="encodeImgToBase64(this, 'sngEditPhotoB64')" class="w-full text-[9px] mt-0.5">
+                                <input type="hidden" id="sngEditPhotoB64" value="">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-600 block uppercase">Edit Sign</label>
+                                <input type="file" accept="image/*" onchange="encodeImgToBase64(this, 'sngEditSignB64')" class="w-full text-[9px] mt-0.5">
+                                <input type="hidden" id="sngEditSignB64" value="">
+                            </div>
+                        </div>
+                    </div>
 
-"4":{
-"2":{
-n:"ANSHIKA PRAJAPATI",
-f:"MUSAFIR PRAJAPATI",
-a:"026405166A",
-subjects:[
-{sub:"ENGLISH",code:"1101",date:"15-03-2026",day:"SUNDAY"},
-{sub:"SCIENCE",code:"1010",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"2017",date:"19-03-2026",day:"THURSDAY"},
-{sub:"ART",code:"2011",date:"21-03-2026",day:"SATURDAY"}
-]
-},
+                    <div class="bg-indigo-50 p-2 rounded border border-indigo-200">
+                        <label class="block text-[10px] font-black text-indigo-950 uppercase">💳 Admit Card ID:</label>
+                        <input type="text" id="sngAdmitCardIdInput" placeholder="e.g. SEC-123456" class="w-full mt-1 p-1.5 border rounded text-xs font-mono font-bold bg-white" oninput="syncSingleCardLivePreviewPanel()">
+                    </div>
 
-"7":{
-n:"RAJ PAL",
-f:"VIJAY PAL",
-a:"026405170F",
-subjects:[
-{sub:"ENGLISH",code:"1101",date:"15-03-2026",day:"SUNDAY"},
-{sub:"SCIENCE",code:"0109",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"2018",date:"19-03-2026",day:"THURSDAY"},
-{sub:"G.K",code:"2010",date:"21-03-2026",day:"SATURDAY"}
-]
-}
-},
+                    <div class="border-t pt-2 space-y-1">
+                        <span class="text-[10px] font-black text-indigo-950 block uppercase">Schedule Routine Matrix</span>
+                        <div class="space-y-1.5">
+                            <div class="grid grid-cols-4 gap-1 items-center">
+                                <select id="sngSub1" class="p-1 border text-xs font-bold rounded">
+                                    <option value="English">English</option><option value="Hindi">Hindi</option><option value="Mathematics">Mathematics</option><option value="Science">Science</option>
+                                    <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                                </select>
+                                <input type="text" id="sngCode1" value="101" class="p-1 border text-xs font-mono text-center">
+                                <input type="date" id="sngDate1" onchange="computeDayString(this.value, 'sngDay1')" class="p-1 border text-xs">
+                                <input type="text" id="sngDay1" placeholder="Day" class="p-1 border text-xs text-center font-bold bg-slate-100" readonly>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 items-center">
+                                <select id="sngSub2" class="p-1 border text-xs font-bold rounded">
+                                    <option value="Hindi">Hindi</option><option value="English">English</option><option value="Mathematics">Mathematics</option><option value="Science">Science</option>
+                                    <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                                </select>
+                                <input type="text" id="sngCode2" value="102" class="p-1 border text-xs font-mono text-center">
+                                <input type="date" id="sngDate2" onchange="computeDayString(this.value, 'sngDay2')" class="p-1 border text-xs">
+                                <input type="text" id="sngDay2" placeholder="Day" class="p-1 border text-xs text-center font-bold bg-slate-100" readonly>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 items-center">
+                                <select id="sngSub3" class="p-1 border text-xs font-bold rounded">
+                                    <option value="Mathematics">Mathematics</option><option value="English">English</option><option value="Hindi">Hindi</option><option value="Science">Science</option>
+                                    <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                                </select>
+                                <input type="text" id="sngCode3" value="103" class="p-1 border text-xs font-mono text-center">
+                                <input type="date" id="sngDate3" onchange="computeDayString(this.value, 'sngDay3')" class="p-1 border text-xs">
+                                <input type="text" id="sngDay3" placeholder="Day" class="p-1 border text-xs text-center font-bold bg-slate-100" readonly>
+                            </div>
+                            <div class="grid grid-cols-4 gap-1 items-center">
+                                <select id="sngSub4" class="p-1 border text-xs font-bold rounded">
+                                    <option value="Science">Science</option><option value="English">English</option><option value="Hindi">Hindi</option><option value="Mathematics">Mathematics</option>
+                                    <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                                </select>
+                                <input type="text" id="sngCode4" value="104" class="p-1 border text-xs font-mono text-center">
+                                <input type="date" id="sngDate4" onchange="computeDayString(this.value, 'sngDay4')" class="p-1 border text-xs">
+                                <input type="text" id="sngDay4" placeholder="Day" class="p-1 border text-xs text-center font-bold bg-slate-100" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-950 text-white font-black py-2 rounded text-xs uppercase tracking-wider">💾 Save Changes & Card</button>
+                </form>
+            </div>
 
-"6":{
-"3":{
-n:"SHIMANSHU PRAJAPATI",
-f:"GUDDU PRAJAPATI",
-a:"026405167S",
-subjects:[
-{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
-{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
-{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
-]
-},
+            <div class="lg:col-span-2 bg-white border p-4 rounded-xl relative shadow watermark-bg">
+                <span class="absolute top-2 right-3 text-[9px] font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border uppercase">Live Preview</span>
+                <div class="border-4 border-double border-slate-900 p-4 rounded-lg bg-white mt-4 text-black max-w-xl mx-auto">
+                    <div class="flex items-center space-x-4 border-b-2 border-slate-400 pb-3 mb-4 relative min-h-[85px]">
+                        <img src="logo.png" class="w-14 h-14 rounded-full border bg-white object-contain absolute left-0 top-1">
+                        <div class="pl-16">
+                            <h4 class="text-base font-black text-indigo-950 tracking-wide uppercase leading-none">SUPER EDUCATED CLASS</h4>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mt-1">Shekhpur Daud, Azamgarh, Uttar Pradesh</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <div class="flex-1 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] font-bold bg-slate-50 p-1.5 rounded border">
+                            <div>NAME: <span id="pvwSngName" class="text-indigo-950 uppercase font-black">-</span></div>
+                            <div>CLASS: <span id="pvwSngClass" class="text-slate-900 font-black">-</span></div>
+                            <div>FATHER: <span id="pvwSngFather" class="text-slate-900 uppercase">-</span></div>
+                            <div>ROLL NO: <span id="pvwSngRoll" class="text-slate-900 font-black">-</span></div>
+                            <div class="col-span-2">ADMIT ID: <span id="pvwSngAdmitId" class="text-indigo-900 font-mono font-bold">-</span></div>
+                        </div>
+                    </div>
+                    <table class="w-full subject-table text-center text-[11px] table-fixed">
+                        <thead>
+                            <tr class="bg-slate-100">
+                                <th class="text-left pl-2 w-[32%]">Subject</th>
+                                <th class="w-[15%]">Code</th>
+                                <th class="w-[28%]">Date</th>
+                                <th class="w-[25%]">Day</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pvwSingleTableBody">
+                            <tr><td colspan="4" class="p-2 text-center text-slate-400 italic">Enter parameters to load matrix</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-"4":{
-n:"AMAN PAL",
-f:"LAL BAHADUR PAL",
-a:"026405168C",
-subjects:[
-{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
-{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
-{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
-]
-},
+        <div id="tab-create" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow border space-y-4">
+                <h3 class="text-xs font-black text-indigo-950 uppercase tracking-widest border-b pb-2">🎴 Bulk Routine Matrix Creator</h3>
+                <form onsubmit="handleBulkDraftSubmission(event)" class="space-y-3">
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Year</label>
+                            <select id="regYear" class="w-full mt-0.5 p-1.5 border text-xs bg-slate-50 font-bold"><option value="2026">2026</option></select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Class</label>
+                            <select id="regClass" class="w-full mt-0.5 p-1.5 border text-xs bg-slate-50 font-bold">
+                                <option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option>
+                                <option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option>
+                                <option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option>
+                                <option value="10">Class 10</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Term</label>
+                            <select id="regTerm" class="w-full mt-0.5 p-1.5 border text-xs bg-slate-50 font-bold">
+                                <option value="FIRST TERM">1st Term</option>
+                                <option value="SECOND TERM">2nd Term</option>
+                                <option value="THIRD TERM">3rd Term</option>
+                            </select>
+                        </div>
+                    </div>
 
-"6":{
-n:"SARVODAY PRAJAPATI",
-f:"BABULAL PRAJAPATI",
-a:"026405166E",
-subjects:[
-{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
-{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
-{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
-]
-}
-},
+                    <div class="border-t pt-2 space-y-2">
+                        <div class="grid grid-cols-4 gap-1 items-center bg-slate-50 p-1 rounded border">
+                            <select id="sub1Name" onchange="syncLiveCanvasRoutine()" class="p-1 border text-[11px] font-bold rounded">
+                                <option value="English">English</option><option value="Hindi">Hindi</option><option value="Mathematics">Mathematics</option><option value="Science">Science</option>
+                                <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                            </select>
+                            <input type="text" id="sub1Code" value="101" class="p-1 border text-[11px] text-center font-mono">
+                            <input type="date" id="sub1Date" onchange="computeDayString(this.value, 'sub1Day')" class="p-1 border text-[11px] rounded">
+                            <input type="text" id="sub1Day" placeholder="Day" class="p-1 bg-white border text-[11px] text-center font-bold rounded" readonly>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1 items-center bg-slate-50 p-1 rounded border">
+                            <select id="sub2Name" onchange="syncLiveCanvasRoutine()" class="p-1 border text-[11px] font-bold rounded">
+                                <option value="Hindi">Hindi</option><option value="English">English</option><option value="Mathematics">Mathematics</option><option value="Science">Science</option>
+                                <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                            </select>
+                            <input type="text" id="sub2Code" value="102" class="p-1 border text-[11px] text-center font-mono">
+                            <input type="date" id="sub2Date" onchange="computeDayString(this.value, 'sub2Day')" class="p-1 border text-[11px] rounded">
+                            <input type="text" id="sub2Day" placeholder="Day" class="p-1 bg-white border text-[11px] text-center font-bold rounded" readonly>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1 items-center bg-slate-50 p-1 rounded border">
+                            <select id="sub3Name" onchange="syncLiveCanvasRoutine()" class="p-1 border text-[11px] font-bold rounded">
+                                <option value="Mathematics">Mathematics</option><option value="English">English</option><option value="Hindi">Hindi</option><option value="Science">Science</option>
+                                <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                            </select>
+                            <input type="text" id="sub3Code" value="103" class="p-1 border text-[11px] text-center font-mono">
+                            <input type="date" id="sub3Date" onchange="computeDayString(this.value, 'sub3Day')" class="p-1 border text-[11px] rounded">
+                            <input type="text" id="sub3Day" placeholder="Day" class="p-1 bg-white border text-[11px] text-center font-bold rounded" readonly>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1 items-center bg-slate-50 p-1 rounded border">
+                            <select id="sub4Name" onchange="syncLiveCanvasRoutine()" class="p-1 border text-[11px] font-bold rounded">
+                                <option value="Science">Science</option><option value="English">English</option><option value="Hindi">Hindi</option><option value="Mathematics">Mathematics</option>
+                                <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
+                            </select>
+                            <input type="text" id="sub4Code" value="104" class="p-1 border text-[11px] text-center font-mono">
+                            <input type="date" id="sub4Date" onchange="computeDayString(this.value, 'sub4Day')" class="p-1 border text-[11px] rounded">
+                            <input type="text" id="sub4Day" placeholder="Day" class="p-1 bg-white border text-[11px] text-center font-bold rounded" readonly>
+                        </div>
+                    </div>
 
-"7":{
-"5":{
-n:"ANAND PRAJAPATI",
-f:"DINESH PRAJAPATI",
-a:"026405169D",
-subjects:[
-{sub:"ENGLISH",code:"1010",date:"15-03-2026",day:"SUNDAY"},
-{sub:"SCIENCE",code:"0110",date:"18-03-2026",day:"WEDNESDAY"},
-{sub:"MATHS",code:"1201",date:"19-03-2026",day:"THURSDAY"},
-{sub:"G.K",code:"1022",date:"21-03-2026",day:"SATURDAY"}
-]
-}
-}
+                    <div class="pt-2 flex space-x-2">
+                        <button type="button" onclick="resetFormState()" class="w-1/3 bg-slate-200 text-slate-700 font-bold py-2 rounded text-xs uppercase">Reset</button>
+                        <button type="submit" class="flex-1 bg-indigo-950 hover:bg-indigo-900 text-white font-black py-2 rounded text-xs uppercase tracking-wider shadow">💾 Save Bulk Draft</button>
+                    </div>
+                </form>
+            </div>
 
-}
-}
-};
+            <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow border relative">
+                <div class="border border-slate-300 p-4 bg-white watermark-bg">
+                    <table class="w-full border-collapse border border-slate-400 text-xs text-center bg-white/95 table-fixed">
+                        <thead>
+                            <tr class="bg-slate-100 font-black text-slate-700">
+                                <th class="border border-slate-400 p-1.5 text-left pl-3 w-[32%]">Subject Matrix</th>
+                                <th class="border border-slate-400 p-1.5 w-[15%]">Code</th>
+                                <th class="border border-slate-400 p-1.5 w-[28%]">Exam Date</th>
+                                <th class="border border-slate-400 p-1.5 w-[25%]">Resolved Day</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pvwRoutineRows">
+                            <tr><td colspan="4" class="p-4 text-slate-400 italic">No schedules processed</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-/* SEARCH FUNCTION (AUTO SEARCH ALL CLASS) */
-function showAdmit(){
+        <div id="tab-drafts" class="tab-content hidden bg-white rounded-xl shadow border overflow-hidden">
+            <div class="bg-slate-50 px-4 py-3 border-b flex flex-wrap justify-between items-center gap-2">
+                <span class="font-black text-indigo-950 text-xs uppercase tracking-wider">👁️ View Draft Database Matrix</span>
+                <div class="flex space-x-2 text-xs font-bold">
+                    <select id="drftYear" onchange="renderDraftListGrid()" class="border p-1 rounded font-black bg-white">
+                        <option value="2026">2026</option>
+                    </select>
+                    <select id="drftTerm" onchange="renderDraftListGrid()" class="border p-1 rounded font-black bg-white">
+                        <option value="FIRST TERM">First Term</option>
+                        <option value="SECOND TERM">Second Term</option>
+                        <option value="THIRD TERM">Third Term</option>
+                    </select>
+                    <select id="drftCls" onchange="renderDraftListGrid()" class="border p-1 rounded font-black bg-amber-50 text-indigo-950">
+                        <option value="ALL">-- All Class --</option>
+                        <option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option>
+                        <option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option>
+                        <option value="7">Class 7</option><option value="8">Class 8</option><option value="9">Class 9</option>
+                        <option value="10">Class 10</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-xs md:text-sm">
+                    <thead class="bg-slate-100 font-black uppercase text-slate-700">
+                        <tr>
+                            <th class="px-4 py-3">Class & Roll</th>
+                            <th class="px-4 py-3">Student Name</th>
+                            <th class="px-4 py-3">Routine Configuration</th>
+                            <th class="px-4 py-3 text-center">Action Parameters</th>
+                        </tr>
+                    </thead>
+                    <tbody id="draftGridRows" class="divide-y font-medium text-slate-800"></tbody>
+                </table>
+            </div>
+        </div>
 
-let y=document.getElementById("year").value;
-let t=document.getElementById("term").value;
-let selectedClass=document.getElementById("class").value;
-let name=document.getElementById("name").value.toUpperCase().trim();
+        <div id="tab-publish" class="tab-content hidden max-w-4xl mx-auto bg-white p-6 rounded-xl shadow border space-y-4">
+            <h3 class="text-xs font-black text-indigo-950 uppercase tracking-widest border-b pb-1">📢 Public Settings & Targeted Publishing Control</h3>
+            
+            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-600 uppercase">Select Year Filter</label>
+                    <select id="pubYear" onchange="renderPublishDraftSection()" class="w-full mt-1 p-1.5 border text-xs font-bold bg-white"><option value="2026">2026</option></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-600 uppercase">Select Term Filter</label>
+                    <select id="pubTerm" onchange="renderPublishDraftSection()" class="w-full mt-1 p-1.5 border text-xs font-bold bg-white">
+                        <option value="FIRST TERM">First Term</option>
+                        <option value="SECOND TERM">Second Term</option>
+                        <option value="THIRD TERM">Third Term</option>
+                    </select>
+                </div>
+            </div>
 
-let student=null;
-let roll=null;
-let foundClass=null;
+            <div class="bg-indigo-50 border border-indigo-200 rounded p-3 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <span class="text-xs font-black text-indigo-950 block uppercase">⚡ Global Bulk Publish Routine Time</span>
+                    <span class="text-[10px] text-slate-500">Sabhi cards par ek sath apply karne ke liye date & time set karein.</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="date" id="globalPublishDate" class="p-1.5 border text-xs font-bold rounded bg-white">
+                    <input type="time" id="globalPublishTime" class="p-1.5 border text-xs font-bold rounded bg-white">
+                    <button onclick="globalPublishAllFilteredWithCustomSchedule()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded uppercase tracking-wider shadow">Apply & Publish All Filtered</button>
+                </div>
+            </div>
 
-let termData=admitData[y]?.[t];
+            <div class="border rounded p-3 bg-slate-50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-black text-indigo-950 uppercase">Draft Items Track List</span>
+                </div>
+                <div id="publishDraftListContainer" class="space-y-2 max-h-64 overflow-y-auto bg-white p-2 border rounded"></div>
+            </div>
 
-if(!termData){
-alert("No Data Found");
-return;
-}
+            <div class="pt-2">
+                <button onclick="commitAdmitPublishSchedule(true)" class="w-full bg-indigo-950 hover:bg-indigo-900 text-white text-xs font-black py-3 rounded uppercase tracking-wider shadow">🚀 Master Deploy Channel Live</button>
+            </div>
+        </div>
+    </div>
 
-/* LOOP ALL CLASS */
-for(let cls in termData){
+    <div id="cardModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-2 md:p-4 z-50 overflow-y-auto no-print">
+        <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-2 md:p-5 relative my-2">
+            <button onclick="closeCardModal()" class="absolute top-2 right-3 text-slate-400 hover:text-rose-600 font-black text-2xl z-20 transition-colors">✖</button>
+            
+            <div class="relative p-3 md:p-5 border-4 border-double border-slate-900 bg-white text-black watermark-bg rounded-lg">
+                
+                <div class="pb-3 border-b-2 border-slate-400 mb-4 flex items-center relative min-h-[90px]">
+                    <div class="absolute left-0 top-1 w-14 h-14 md:w-16 md:h-16 rounded-full border border-slate-300 bg-white p-0.5 flex items-center justify-center">
+                        <img src="logo.png" alt="Logo" class="w-full h-full rounded-full object-contain">
+                    </div>
+                    <div class="pl-16 md:pl-20 w-full text-left">
+                        <h1 class="text-lg md:text-2xl font-black tracking-wide text-indigo-950 uppercase leading-none">SUPER EDUCATED CLASS</h1>
+                        <p class="text-[9px] md:text-xs font-bold tracking-wider text-slate-500 uppercase mt-1 leading-tight">SHEKHPUR DAUD, AZAMGARH, UTTAR PRADESH</p>
+                        <div id="mModalTitle" class="bg-indigo-50 text-indigo-950 text-[10px] md:text-xs font-black px-2.5 py-0.5 rounded border border-indigo-200 uppercase tracking-wider inline-block mt-2">
+                            FIRST TERM EXAMINATION 2026
+                        </div>
+                    </div>
+                </div>
 
-if(selectedClass && cls!==selectedClass) continue;
+                <div class="mb-4">
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-3 text-xs font-semibold text-slate-700 bg-slate-50/70 p-3 md:p-4 rounded-xl border border-slate-200">
+                        <div>
+                            <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">STUDENT NAME</span> 
+                            <span id="mName" class="text-slate-950 uppercase font-black text-sm tracking-wide block mt-0.5">-</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">CLASS / STANDARD</span> 
+                            <span id="mClass" class="text-slate-950 font-black text-sm block mt-0.5">-</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">FATHER'S NAME</span> 
+                            <span id="mFather" class="text-slate-950 uppercase font-black text-sm block mt-0.5">-</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">ROLL NUMBER</span> 
+                            <span id="mRoll" class="text-slate-950 font-black text-sm block mt-0.5">-</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">ADMIT PASS ID</span> 
+                            <span id="mAdmitId" class="text-indigo-950 font-mono font-black bg-indigo-100/70 px-2 py-0.5 rounded border border-indigo-200 inline-block mt-0.5 text-xs">-</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">DATE OF BIRTH</span> 
+                            <span id="mDob" class="text-slate-950 font-black text-xs bg-yellow-100 px-2 py-0.5 rounded border border-yellow-200 inline-block mt-0.5">-</span>
+                        </div>
+                    </div>
+                </div>
 
-let classData=termData[cls];
+                <div class="overflow-x-auto -mx-1 px-1">
+                    <table class="w-full subject-table text-center bg-white rounded table-fixed min-w-[340px] mb-4 border">
+                        <thead>
+                            <tr>
+                                <th class="text-left pl-3 w-[32%] py-2.5">EXAM SUBJECT</th>
+                                <th class="w-[15%] py-2.5">CODE</th>
+                                <th class="w-[28%] py-2.5">DATE</th>
+                                <th class="w-[25%] py-2.5">DAY</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalRoutineBody" class="font-bold"></tbody>
+                    </table>
+                </div>
 
-for(let r in classData){
-if(classData[r].n.toUpperCase().trim()===name){
-student=classData[r];
-roll=r;
-foundClass=cls;
-break;
-}
-}
+                <!-- UPDATED INSTRUCTIONS BOX AS PER YOUR REQUEST -->
+                <div class="border border-dashed border-slate-400 p-3 bg-slate-50 rounded text-[11px] text-slate-600 space-y-1 relative z-10">
+                    <span class="font-bold text-indigo-950 block uppercase text-xs mb-1">⚠️ Important Instructions for Candidates:</span>
+                    <p>1. Students must carry this physical printout of the Admit Card to the examination hall.</p>
+                </div>
 
-if(student) break;
-}
+                <div class="grid grid-cols-3 text-center mt-5 pt-3 border-t border-slate-300 text-[10px]">
+                    <div>
+                        <div class="h-10 flex items-end justify-center"><div class="w-16 border-b border-slate-400 border-dashed"></div></div>
+                        <span class="font-bold text-slate-500 uppercase block mt-1 text-[9px]">Candidate Sign</span>
+                    </div>
+                    <div>
+                        <div class="h-10 flex items-end justify-center"><div class="w-16 border-b border-slate-400 border-dashed"></div></div>
+                        <span class="font-bold text-slate-500 uppercase block mt-1 text-[9px]">Class Teacher</span>
+                    </div>
+                    <div>
+                        <div class="h-10 flex flex-col items-center justify-center bg-slate-50/50 rounded border border-slate-100 p-0.5 overflow-hidden">
+                            <img id="mEcaSignImg" src="" class="h-8 max-w-full object-contain" alt="Controller Sign">
+                        </div>
+                        <span class="text-[10px] font-black text-slate-900 uppercase block tracking-wide border-t border-slate-400 pt-0.5 w-20 mx-auto mt-1">Controller Sig</span>
+                    </div>
+                </div>
+            </div>
 
-if(!student){
-alert("❌ Student Not Found");
-return;
-}
+            <div class="mt-4 flex justify-end space-x-2 no-print">
+                <button onclick="closeCardModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs uppercase transition border">CLOSE</button>
+                <button id="modalPrintBtn" onclick="triggerDirectPdfPrintWindow()" class="bg-indigo-950 hover:bg-indigo-900 text-white font-black px-6 py-2 rounded-lg text-xs uppercase tracking-wider shadow">🖨️ Print Admit Pass</button>
+            </div>
+        </div>
+    </div>
 
-/* SUBJECT TABLE */
-let rows="";
-student.subjects.forEach(s=>{
-rows+=`<tr>
-<td>${s.sub}</td>
-<td>${s.code}</td>
-<td>${s.date}</td>
-<td>${s.day}</td>
-</tr>`;
-});
+    <div id="printBatchContainer" class="hidden bg-white text-black p-2"></div>
 
-/* OUTPUT */
-document.getElementById("admitContent").innerHTML=`
-<div class="header2">
-<h2>SUPER EDUCATED CLASS</h2>
-<p>SHEKHPUR DAUD AZAMGARH</p>
-<h3>${t.toUpperCase()} TERM EXAMINATION ${y}</h3>
-</div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<hr>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw_f7ew1GMy5HhL9Io-i7zfA3mOQSpn2s",
+            authDomain: "super-educated-class.firebaseapp.com",
+            databaseURL: "https://super-educated-class-default-rtdb.firebaseio.com",
+            projectId: "super-educated-class",
+            storageBucket: "super-educated-class.firebasestorage.app",
+            messagingSenderId: "993892326574",
+            appId: "1:993892326574:web:356ca4361c718aff4da13f"
+        };
+        if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
+        const database = firebase.database();
 
-<table>
-<tr>
-<td><b>NAME:</b> ${student.n}</td>
-<td><b>CLASS:</b> ${foundClass}</td>
-<td><b>ROLL NO:</b> ${roll}</td>
-</tr>
+        let globalAdmitLive = false;
+        let ecaSignatureGlobalBase64 = "";
+        let studentProfileCache = {};
+        let admitCardDraftCache = {};
+        let approvalMatrixCache = {};
+        let isAdminLoggedIn = false;
+        let activeModalObjectPointer = null;
 
-<tr>
-<td><b>FATHER NAME:</b> ${student.f}</td>
-<td colspan="2"><b>ADMIT CARD ID:</b> ${student.a}</td>
-</tr>
-</table>
+        database.ref('portal_records').on('value', (snap) => { 
+            studentProfileCache = snap.exists() ? snap.val() : {}; 
+            populateStudentNameDropdown(); 
+        });
+        database.ref('admit_card_drafts').on('value', (snap) => {
+            admitCardDraftCache = snap.exists() ? snap.val() : {};
+            renderDraftListGrid();
+            loadProfilesForApprovalReview();
+            renderPublishDraftSection();
+        });
+        database.ref('eca_config').on('value', (snap) => {
+            if(snap.exists()) {
+                ecaSignatureGlobalBase64 = snap.val().signatureBase64 || "";
+                if(ecaSignatureGlobalBase64) {
+                    document.getElementById('ecaSignaturePreview').src = ecaSignatureGlobalBase64;
+                    document.getElementById('mEcaSignImg').src = ecaSignatureGlobalBase64;
+                }
+            }
+        });
+        database.ref('admit_publish_config').on('value', (snap) => { if(snap.exists()){ globalAdmitLive = snap.val().isLive || false; } });
+        database.ref('admit_approvals').on('value', (snap) => { 
+            approvalMatrixCache = snap.exists() ? snap.val() : {}; 
+            loadProfilesForApprovalReview();
+        });
 
-<table>
-<tr>
-<th>SUBJECT</th>
-<th>PAPER CODE</th>
-<th>DATE</th>
-<th>DAY</th>
-</tr>
-${rows}
-</table>
+        /* GRAMMATICALLY RESOLVED CLASS NAME FORMATTER FOR PREVIEW SCRIPT */
+        function formatClassOrdinalSuffix(classValue) {
+            const num = parseInt(classValue);
+            if (isNaN(num)) return classValue || "-";
+            if (num === 1) return "1st";
+            if (num === 2) return "2nd";
+            if (num === 3) return "3rd";
+            return num + "th";
+        }
 
-<br>
-<p style="text-align:right">Teacher Signature</p>
-`;
+        function formatDateToDMY(dateString) {
+            if (!dateString || dateString === '-' || dateString.includes('/')) return dateString || '- - -';
+            const parts = dateString.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateString;
+        }
 
-document.getElementById("popup").style.display="flex";
-}
+        function initLiveHandlers() {
+            const fields = [
+                'sngSub1', 'sngCode1', 'sngDate1', 'sngDay1',
+                'sngSub2', 'sngCode2', 'sngDate2', 'sngDay2',
+                'sngSub3', 'sngCode3', 'sngDate3', 'sngDay3',
+                'sngSub4', 'sngCode4', 'sngDate4', 'sngDay4'
+            ];
+            fields.forEach(fId => {
+                const el = document.getElementById(fId);
+                if(el) el.addEventListener('input', syncSingleCardLivePreviewPanel);
+            });
+        }
 
-/* CLOSE */
-function closePopup(){
-document.getElementById("popup").style.display="none";
-}
+        function openEcaModal() { document.getElementById('ecaModal').classList.remove('hidden'); loadProfilesForApprovalReview(); }
+        function closeEcaModal() { document.getElementById('ecaModal').classList.add('hidden'); }
+        function openAdminAuth() { if(isAdminLoggedIn){ switchToAdminView(); } else { document.getElementById('authModal').classList.remove('hidden'); }}
+        function closeAdminAuth() { document.getElementById('authModal').classList.add('hidden'); }
+        function openPrintSelectionModal() { document.getElementById('printSelectionModal').classList.remove('hidden'); }
+        function closePrintSelectionModal() { document.getElementById('printSelectionModal').classList.add('hidden'); }
 
-</script>
+        function verifyLogin() {
+            const u = document.getElementById('userInput').value; const p = document.getElementById('passInput').value;
+            if(u === "SEC2026" && p === "Super123@") { isAdminLoggedIn = true; closeAdminAuth(); switchToAdminView(); } else { alert("Credentials mismatch."); }
+        }
 
+        function switchToAdminView() {
+            document.getElementById('search-portal').classList.add('hidden');
+            document.getElementById('admin-dashboard').classList.remove('hidden');
+            document.getElementById('authToggleBtn').innerText = "🖥️ Exit Dashboard";
+            document.getElementById('authToggleBtn').setAttribute('onclick', "switchToStudentView()");
+        }
+        function switchToStudentView() {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('search-portal').classList.remove('hidden');
+            document.getElementById('authToggleBtn').innerText = "🔑 Teacher Panel";
+            document.getElementById('authToggleBtn').setAttribute('onclick', "openAdminAuth()");
+        }
+
+        function switchTab(tId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.className = "tab-btn bg-gray-200 text-gray-700 font-black py-3 rounded text-[11px] uppercase tracking-wider");
+            document.getElementById(tId).classList.remove('hidden');
+            if(document.getElementById('btn-'+tId)) {
+                document.getElementById('btn-'+tId).className = "tab-btn bg-indigo-950 text-white font-black py-3 rounded text-[11px] uppercase tracking-wider";
+            }
+            if(tId === 'tab-create-single') populateStudentNameDropdown();
+            if(tId === 'tab-drafts') renderDraftListGrid();
+            if(tId === 'tab-publish') renderPublishDraftSection();
+        }
+
+        function computeDayString(dateStr, targetInputId) {
+            if(!dateStr) return;
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            document.getElementById(targetInputId).value = days[new Date(dateStr).getDay()];
+            syncSingleCardLivePreviewPanel();
+            if(targetInputId.startsWith('sub')) syncLiveCanvasRoutine();
+        }
+
+        function resetFormState() { syncLiveCanvasRoutine(); }
+
+        function encodeImgToBase64(element, targetHiddenId) {
+            const file = element.files[0]; const reader = new FileReader();
+            reader.onloadend = function() { 
+                document.getElementById(targetHiddenId).value = reader.result; 
+                if(targetHiddenId === 'stuRegPhotoB64') document.getElementById('stuRegPhotoPreviewContainer').classList.remove('hidden');
+                if(targetHiddenId === 'stuRegSignB64') document.getElementById('stuRegSignPreviewContainer').classList.remove('hidden');
+            }
+            if(file) reader.readAsDataURL(file);
+        }
+
+        /* AUTOFILL PREVIOUS DATA EXTRACTOR ENGINE */
+        function autoLoadPreviousStudentProfileData() {
+            const searchClass = document.getElementById('fetchStuClass').value;
+            const searchTerm = document.getElementById('fetchStuTerm').value;
+            const searchRoll = document.getElementById('fetchStuRoll').value.trim();
+
+            if(!searchRoll) {
+                alert("Kripya search karne ke liye pehle previous profile ka Roll Number daalein!");
+                return;
+            }
+
+            let foundMatch = null;
+            Object.keys(studentProfileCache).forEach(k => {
+                const profile = studentProfileCache[k];
+                if(profile.classNum === searchClass && profile.termName === searchTerm && String(profile.rollNo) === String(searchRoll)) {
+                    foundMatch = profile;
+                }
+            });
+
+            if(foundMatch) {
+                document.getElementById('regStuName').value = foundMatch.name || "";
+                document.getElementById('regStuFather').value = foundMatch.fatherName || "";
+                document.getElementById('regStuMother').value = foundMatch.motherName || "";
+                document.getElementById('regStuGender').value = foundMatch.gender || "MALE";
+                document.getElementById('regStuDob').value = foundMatch.dob || "";
+                
+                if(foundMatch.studentImage) {
+                    document.getElementById('stuRegPhotoB64').value = foundMatch.studentImage;
+                    document.getElementById('stuRegPhotoPreviewContainer').classList.remove('hidden');
+                }
+                if(foundMatch.studentSign) {
+                    document.getElementById('stuRegSignB64').value = foundMatch.studentSign;
+                    document.getElementById('stuRegSignPreviewContainer').classList.remove('hidden');
+                }
+                alert(`🎉 Badhai ho! Roll No: ${searchRoll} (Class: ${searchClass}) ka saara profile data successfully yahan load ho gaya hai.`);
+            } else {
+                alert("❌ Diye gaye parameters se koi purana profile data match nahi hua. Kripya details check karein!");
+            }
+        }
+
+        function processEcaSignature(element) {
+            const file = element.files[0]; const reader = new FileReader();
+            reader.onloadend = function() {
+                ecaSignatureGlobalBase64 = reader.result;
+                database.ref('eca_config').set({ signatureBase64: reader.result });
+                document.getElementById('ecaSignaturePreview').src = reader.result;
+                document.getElementById('mEcaSignImg').src = reader.result;
+            }
+            if(file) reader.readAsDataURL(file);
+        }
+
+        function loadProfilesForApprovalReview() {
+            const container = document.getElementById('approvalReviewContainer');
+            if(!container) return; container.innerHTML = "";
+            const ayr = document.getElementById('appYear').value;
+            const atrm = document.getElementById('appTerm').value;
+            let counter = 0;
+
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const d = admitCardDraftCache[k];
+                if(d.year === ayr && d.termName === atrm) {
+                    counter++;
+                    const statusKey = `${d.classNum}_${d.rollNo}_${atrm.replace(/\s+/g, '_')}`;
+                    const isApproved = approvalMatrixCache[statusKey]?.approved || false;
+                    
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between p-2 border rounded bg-slate-50 mb-1">
+                            <div>
+                                <span class="font-black text-indigo-950">Roll-${d.rollNo} (Class ${formatClassOrdinalSuffix(d.classNum)})</span> - <span class="text-slate-900 uppercase font-bold">${d.name}</span>
+                                <span class="ml-2 px-1 rounded text-[10px] ${isApproved?'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}">${isApproved?'Approved':'Pending Matrix'}</span>
+                            </div>
+                            <div class="flex space-x-1">
+                                <button onclick="triggerDirectViewAdmit('${k}', true)" class="bg-indigo-950 text-white font-bold px-2 py-1 rounded text-[10px] uppercase">View</button>
+                                <button onclick="setIndividualApprovalStatus('${d.classNum}', '${d.rollNo}', '${atrm}', ${!isApproved})" class="${isApproved?'bg-rose-600':'bg-emerald-600'} text-white font-bold px-2 py-1 rounded text-[10px] uppercase">
+                                    ${isApproved?'Hold':'Approve'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            if(counter === 0) container.innerHTML = `<p class="text-slate-400 italic text-center py-2">No matching target records compiled for term queue.</p>`;
+        }
+
+        function setIndividualApprovalStatus(cls, roll, trm, flag) {
+            const statusKey = `${cls}_${roll}_${trm.replace(/\s+/g, '_')}`;
+            database.ref(`admit_approvals/${statusKey}`).set({ approved: flag }, (err) => {
+                if(!err) loadProfilesForApprovalReview();
+            });
+        }
+
+        function handleStudentRegistration(event) {
+            event.preventDefault();
+            const profilePayload = {
+                year: document.getElementById('regStuYear').value,
+                classNum: document.getElementById('regStuClass').value,
+                termName: document.getElementById('regStuTerm').value,
+                rollNo: document.getElementById('regStuRoll').value.trim(),
+                name: document.getElementById('regStuName').value,
+                fatherName: document.getElementById('regStuFather').value,
+                motherName: document.getElementById('regStuMother').value,
+                gender: document.getElementById('regStuGender').value,
+                dob: document.getElementById('regStuDob').value,
+                studentImage: document.getElementById('stuRegPhotoB64').value,
+                studentSign: document.getElementById('stuRegSignB64').value,
+                admitCardId: 'SEC-' + Math.floor(100000 + Math.random() * 900000)
+            };
+            database.ref('portal_records').push(profilePayload, (err) => {
+                if(!err) { 
+                    alert("Student Registered Successfully!"); 
+                    event.target.reset(); 
+                    document.getElementById('stuRegPhotoPreviewContainer').classList.add('hidden');
+                    document.getElementById('stuRegSignPreviewContainer').classList.add('hidden');
+                    document.getElementById('stuRegPhotoB64').value = "";
+                    document.getElementById('stuRegSignB64').value = "";
+                }
+            });
+        }
+
+        function populateStudentNameDropdown() {
+            const dropdown = document.getElementById('sngNameDropdown');
+            if(!dropdown) return; dropdown.innerHTML = `<option value="">-- Choose Student --</option>`;
+            const yr = document.getElementById('sngYear').value;
+            const cls = document.getElementById('sngClass').value;
+            const trm = document.getElementById('sngTerm').value;
+
+            Object.keys(studentProfileCache).forEach(k => {
+                const p = studentProfileCache[k];
+                if(p.year === yr && p.classNum === cls && p.termName === trm) {
+                    dropdown.innerHTML += `<option value="${k}">${p.name} (Roll: ${p.rollNo})</option>`;
+                }
+            });
+            syncSingleCardLivePreviewPanel();
+        }
+
+        function syncSelectedStudentDataFields() {
+            const dKey = document.getElementById('sngNameDropdown').value;
+            if(!dKey || !studentProfileCache[dKey]) {
+                document.getElementById('pvwSngName').innerText = "-";
+                document.getElementById('pvwSngClass').innerText = "-";
+                document.getElementById('pvwSngFather').innerText = "-";
+                document.getElementById('pvwSngRoll').innerText = "-";
+                document.getElementById('sngAdmitCardIdInput').value = "";
+                
+                document.getElementById('sngEditName').value = "";
+                document.getElementById('sngEditFather').value = "";
+                document.getElementById('sngEditMother').value = "";
+                document.getElementById('sngEditRoll').value = "";
+                document.getElementById('sngEditGender').value = "MALE";
+                document.getElementById('sngEditDob').value = "";
+                document.getElementById('sngEditPhotoB64').value = "";
+                document.getElementById('sngEditSignB64').value = "";
+                return;
+            }
+            const p = studentProfileCache[dKey];
+            
+            document.getElementById('sngEditName').value = p.name || "";
+            document.getElementById('sngEditFather').value = p.fatherName || "";
+            document.getElementById('sngEditMother').value = p.motherName || "";
+            document.getElementById('sngEditRoll').value = p.rollNo || "";
+            document.getElementById('sngEditGender').value = p.gender || "MALE";
+            document.getElementById('sngEditDob').value = p.dob || "";
+            
+            document.getElementById('sngAdmitCardIdInput').value = p.admitCardId || "";
+            document.getElementById('sngEditPhotoB64').value = p.studentImage || "";
+            document.getElementById('sngEditSignB64').value = p.studentSign || "";
+            
+            syncSingleCardLivePreviewPanel();
+        }
+
+        function syncSingleCardLivePreviewPanel() {
+            const sName = document.getElementById('sngEditName').value || "-";
+            const sFather = document.getElementById('sngEditFather').value || "-";
+            const sRoll = document.getElementById('sngEditRoll').value || "-";
+            const sClass = formatClassOrdinalSuffix(document.getElementById('sngClass').value);
+            const customAdmitId = document.getElementById('sngAdmitCardIdInput').value || "-";
+
+            document.getElementById('pvwSngName').innerText = sName;
+            document.getElementById('pvwSngClass').innerText = sClass;
+            document.getElementById('pvwSngFather').innerText = sFather;
+            document.getElementById('pvwSngRoll').innerText = sRoll !== "-" ? String(sRoll).padStart(2, '0') : "-";
+            document.getElementById('pvwSngAdmitId').innerText = customAdmitId;
+
+            const tbody = document.getElementById('pvwSingleTableBody');
+            if(tbody) {
+                tbody.innerHTML = `
+                    <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub1').value}</td><td class="font-mono">${document.getElementById('sngCode1').value}</td><td>${formatDateToDMY(document.getElementById('sngDate1').value)}</td><td class="font-bold">${document.getElementById('sngDay1').value || '-'}</td></tr>
+                    <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub2').value}</td><td class="font-mono">${document.getElementById('sngCode2').value}</td><td>${formatDateToDMY(document.getElementById('sngDate2').value)}</td><td class="font-bold">${document.getElementById('sngDay2').value || '-'}</td></tr>
+                    <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub3').value}</td><td class="font-mono">${document.getElementById('sngCode3').value}</td><td>${formatDateToDMY(document.getElementById('sngDate3').value)}</td><td class="font-bold">${document.getElementById('sngDay3').value || '-'}</td></tr>
+                    <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub4').value}</td><td class="font-mono">${document.getElementById('sngCode4').value}</td><td>${formatDateToDMY(document.getElementById('sngDate4').value)}</td><td class="font-bold">${document.getElementById('sngDay4').value || '-'}</td></tr>
+                `;
+            }
+        }
+
+        function handleSingleDraftSubmission(e) {
+            e.preventDefault();
+            const dKey = document.getElementById('sngNameDropdown').value;
+            if(!dKey) { alert("Pehle Student Name chunen."); return; }
+            
+            const targetProfile = studentProfileCache[dKey];
+            const customAdmitId = document.getElementById('sngAdmitCardIdInput').value.trim();
+            if(!customAdmitId) { alert("Kripya Admit Card ID fill karein."); return; }
+
+            const routineData = [
+                { name: document.getElementById('sngSub1').value, date: document.getElementById('sngDate1').value, day: document.getElementById('sngDay1').value, code: document.getElementById('sngCode1').value },
+                { name: document.getElementById('sngSub2').value, date: document.getElementById('sngDate2').value, day: document.getElementById('sngDay2').value, code: document.getElementById('sngCode2').value },
+                { name: document.getElementById('sngSub3').value, date: document.getElementById('sngDate3').value, day: document.getElementById('sngDay3').value, code: document.getElementById('sngCode3').value },
+                { name: document.getElementById('sngSub4').value, date: document.getElementById('sngDate4').value, day: document.getElementById('sngDay4').value, code: document.getElementById('sngCode4').value }
+            ];
+
+            const editedName = document.getElementById('sngEditName').value.trim();
+            const editedFather = document.getElementById('sngEditFather').value.trim();
+            const editedMother = document.getElementById('sngEditMother').value.trim();
+            const editedRoll = document.getElementById('sngEditRoll').value.trim();
+            const editedGender = document.getElementById('sngEditGender').value;
+            const editedDob = document.getElementById('sngEditDob').value;
+            
+            const editedPhoto = document.getElementById('sngEditPhotoB64').value || targetProfile.studentImage || '';
+            const editedSign = document.getElementById('sngEditSignB64').value || targetProfile.studentSign || '';
+
+            const draftKey = `DRAFT_${targetProfile.classNum}_R_${editedRoll}`;
+            const payload = {
+                year: targetProfile.year, classNum: targetProfile.classNum, termName: targetProfile.termName, rollNo: editedRoll, gender: editedGender,
+                admitCardId: customAdmitId, name: editedName, fatherName: editedFather, motherName: editedMother, dob: editedDob,
+                photo: editedPhoto, candidateSign: editedSign, routine: routineData, publishStamp: ''
+            };
+
+            database.ref(`admit_card_drafts/${draftKey}`).set(payload, (err) => {
+                if(!err) { alert(`Card with updated details saved successfully!`); switchTab('tab-drafts'); }
+            });
+        }
+
+        function triggerEditModeDraftItem(key) {
+            const card = admitCardDraftCache[key];
+            if(!card) return;
+            
+            alert(`Loading profile & routine parameters for ${card.name} into Single Card Creator tab.`);
+            switchTab('tab-create-single');
+            
+            document.getElementById('sngYear').value = card.year || "2026";
+            document.getElementById('sngClass').value = card.classNum;
+            document.getElementById('sngTerm').value = card.termName;
+            
+            populateStudentNameDropdown();
+            
+            let targetProfileKey = "";
+            Object.keys(studentProfileCache).forEach(pk => {
+                const sp = studentProfileCache[pk];
+                if(sp.classNum === card.classNum && sp.termName === card.termName && (String(sp.rollNo) === String(card.rollNo) || sp.name === card.name)) {
+                    targetProfileKey = pk;
+                }
+            });
+            
+            if(targetProfileKey) {
+                document.getElementById('sngNameDropdown').value = targetProfileKey;
+            }
+            
+            document.getElementById('sngEditName').value = card.name || "";
+            document.getElementById('sngEditFather').value = card.fatherName || "";
+            document.getElementById('sngEditMother').value = card.motherName || "";
+            document.getElementById('sngEditRoll').value = card.rollNo || "";
+            document.getElementById('sngEditGender').value = card.gender || "MALE";
+            document.getElementById('sngEditDob').value = card.dob || "";
+            document.getElementById('sngAdmitCardIdInput').value = card.admitCardId || "";
+            document.getElementById('sngEditPhotoB64').value = card.photo || "";
+            document.getElementById('sngEditSignB64').value = card.candidateSign || "";
+            
+            if(card.routine && card.routine.length >= 4) {
+                for(let i=1; i<=4; i++) {
+                    const r = card.routine[i-1];
+                    document.getElementById(`sngSub${i}`).value = r.name;
+                    document.getElementById(`sngCode${i}`).value = r.code || '101';
+                    document.getElementById(`sngDate${i}`).value = r.date || '';
+                    document.getElementById(`sngDay${i}`).value = r.day || '';
+                }
+            }
+            syncSingleCardLivePreviewPanel();
+        }
+
+        function syncLiveCanvasRoutine() {
+            const tbody = document.getElementById('pvwRoutineRows'); if(!tbody) return;
+            tbody.innerHTML = `
+                <tr><td class="border p-1.5 text-left pl-3 font-bold">${document.getElementById('sub1Name').value}</td><td class="border p-1.5 font-mono">${document.getElementById('sub1Code').value}</td><td class="border p-1.5">${formatDateToDMY(document.getElementById('sub1Date').value)}</td><td class="border p-1.5 font-black">${document.getElementById('sub1Day').value || '-'}</td></tr>
+                <tr><td class="border p-1.5 text-left pl-3 font-bold">${document.getElementById('sub2Name').value}</td><td class="border p-1.5 font-mono">${document.getElementById('sub2Code').value}</td><td class="border p-1.5">${formatDateToDMY(document.getElementById('sub2Date').value)}</td><td class="border p-1.5 font-black">${document.getElementById('sub2Day').value || '-'}</td></tr>
+                <tr><td class="border p-1.5 text-left pl-3 font-bold">${document.getElementById('sub3Name').value}</td><td class="border p-1.5 font-mono">${document.getElementById('sub3Code').value}</td><td class="border p-1.5">${formatDateToDMY(document.getElementById('sub3Date').value)}</td><td class="border p-1.5 font-black">${document.getElementById('sub3Day').value || '-'}</td></tr>
+                <tr><td class="border p-1.5 text-left pl-3 font-bold">${document.getElementById('sub4Name').value}</td><td class="border p-1.5 font-mono">${document.getElementById('sub4Code').value}</td><td class="border p-1.5">${formatDateToDMY(document.getElementById('sub4Date').value)}</td><td class="border p-1.5 font-black">${document.getElementById('sub4Day').value || '-'}</td></tr>
+            `;
+        }
+
+        function handleBulkDraftSubmission(e) {
+            e.preventDefault();
+            const y = document.getElementById('regYear').value;
+            const c = document.getElementById('regClass').value;
+            const t = document.getElementById('regTerm').value;
+
+            const routineData = [
+                { name: document.getElementById('sub1Name').value, date: document.getElementById('sub1Date').value, day: document.getElementById('sub1Day').value, code: document.getElementById('sub1Code').value },
+                { name: document.getElementById('sub2Name').value, date: document.getElementById('sub2Date').value, day: document.getElementById('sub2Day').value, code: document.getElementById('sub2Code').value },
+                { name: document.getElementById('sub3Name').value, date: document.getElementById('sub3Date').value, day: document.getElementById('sub3Date').value, code: document.getElementById('sub3Code').value },
+                { name: document.getElementById('sub4Name').value, date: document.getElementById('sub4Date').value, day: document.getElementById('sub4Day').value, code: document.getElementById('sub4Code').value }
+            ];
+
+            let updates = {}; let count = 0;
+            Object.keys(studentProfileCache).forEach(k => {
+                const s = studentProfileCache[k];
+                if(s.year === y && s.classNum === c && s.termName === t) {
+                    count++; const dKey = `DRAFT_${s.classNum}_R_${s.rollNo}`;
+                    updates[dKey] = {
+                        year: s.year, classNum: s.classNum, termName: s.termName, rollNo: s.rollNo, gender: s.gender || 'MALE',
+                        admitCardId: s.admitCardId, name: s.name, fatherName: s.fatherName, motherName: s.motherName, dob: s.dob,
+                        photo: s.studentImage || '', candidateSign: s.studentSign || '', routine: routineData, publishStamp: ''
+                    };
+                }
+            });
+
+            if(count === 0) { alert("Criteria elements mismatch."); return; }
+            database.ref('admit_card_drafts').update(updates, (err) => { if(!err) { alert(`Bulk Draft processed!`); switchTab('tab-drafts'); }});
+        }
+
+        function deleteDraftItem(key) {
+            const card = admitCardDraftCache[key];
+            if (!card) return;
+            
+            if (confirm(`Kya aap sach mein ${card.name} (Roll No: ${card.rollNo}) ki profile aur admit card ko delete karna chahte hain?`)) {
+                database.ref(`admit_card_drafts/${key}`).remove((err) => {
+                    if (!err) {
+                        alert("Profile successfully delete ho gayi hai.");
+                        const approvalKey = `${card.classNum}_${card.rollNo}_${card.termName.replace(/\s+/g, '_')}`;
+                        database.ref(`admit_approvals/${approvalKey}`).remove();
+                    } else {
+                        alert("Error: Delete karne mein koi dikkat aayi.");
+                    }
+                });
+            }
+        }
+
+        function renderDraftListGrid() {
+            const tbody = document.getElementById('draftGridRows'); if(!tbody) return; tbody.innerHTML = "";
+            const fYear = document.getElementById('drftYear').value;
+            const fTerm = document.getElementById('drftTerm').value;
+            const fClass = document.getElementById('drftCls').value;
+            let counter = 0;
+
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const d = admitCardDraftCache[k];
+                if(d.year === fYear && d.termName === fTerm && (fClass === "ALL" || d.classNum === fClass)) {
+                    counter++;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b text-xs">
+                            <td class="px-4 py-3 font-mono font-bold text-indigo-950">Class ${formatClassOrdinalSuffix(d.classNum)} / R-${d.rollNo}</td>
+                            <td class="px-4 py-3 uppercase font-black text-slate-900">${d.name}</td>
+                            <td class="px-4 py-3 text-indigo-900 font-bold">${d.routine[0].name}, ${d.routine[1].name}...</td>
+                            <td class="px-4 py-3 text-center space-x-1 whitespace-nowrap">
+                                <button onclick="triggerDirectViewAdmit('${k}', true)" class="bg-indigo-950 text-white text-xs font-bold px-2.5 py-1 rounded">View Card</button>
+                                <button onclick="triggerEditModeDraftItem('${k}')" class="bg-amber-500 hover:bg-amber-600 text-indigo-950 text-xs font-black px-2.5 py-1 rounded shadow">✏️ Edit</button>
+                                <button onclick="deleteDraftItem('${k}')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-black px-2.5 py-1 rounded shadow">🗑️ Delete Profile</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+            if(counter === 0) tbody.innerHTML = `<tr><td colspan="4" class="p-4 italic text-slate-400 text-center">No matching records found.</td></tr>`;
+        }
+
+        function renderPublishDraftSection() {
+            const container = document.getElementById('publishDraftListContainer');
+            if(!container) return; container.innerHTML = "";
+            const py = document.getElementById('pubYear').value;
+            const pt = document.getElementById('pubTerm').value;
+            let counter = 0;
+
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const d = admitCardDraftCache[k];
+                if(d.year === py && d.termName === pt) {
+                    counter++;
+                    container.innerHTML += `
+                        <div class="flex flex-wrap items-center justify-between p-2.5 border rounded bg-slate-50 text-xs gap-2 mb-1">
+                            <div>
+                                <span class="font-black text-slate-900 uppercase">Roll ${d.rollNo} - ${d.name}</span> (Class ${formatClassOrdinalSuffix(d.classNum)})
+                                ${d.publishStamp ? `<span class="ml-1 text-[10px] bg-emerald-100 text-emerald-800 font-mono px-1 rounded">Live: ${d.publishStamp}</span>` : '<span class="ml-1 text-[10px] bg-slate-200 text-slate-600 px-1 rounded">Unpublished</span>'}
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="date" id="datePub_${k}" class="p-1 border text-[11px] rounded bg-white">
+                                <input type="time" id="timePub_${k}" class="p-1 border text-[11px] rounded bg-white">
+                                <button onclick="publishSingleDraftItem('${k}')" class="bg-indigo-950 text-white font-bold text-[10px] px-2 py-1 rounded uppercase">Publish</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            if(counter === 0) container.innerHTML = `<p class="text-center italic text-slate-400 py-2">No matching drafts found for selection.</p>`;
+        }
+
+        function publishSingleDraftItem(key) {
+            const dVal = document.getElementById(`datePub_${key}`).value;
+            const tVal = document.getElementById(`timePub_${key}`).value;
+            if(!dVal || !tVal) { alert("Please input Date & Time first."); return; }
+            const stamp = `${formatDateToDMY(dVal)} @ ${tVal}`;
+            database.ref(`admit_card_drafts/${key}/publishStamp`).set(stamp, (err) => {
+                if(!err) { alert("Card Status Set to Published!"); renderPublishDraftSection(); }
+            });
+        }
+
+        function globalPublishAllFilteredWithCustomSchedule() {
+            const py = document.getElementById('pubYear').value;
+            const pt = document.getElementById('pubTerm').value;
+            const gDate = document.getElementById('globalPublishDate').value;
+            const gTime = document.getElementById('globalPublishTime').value;
+
+            if(!gDate || !gTime) {
+                alert("Kripya pehle bulk publish ke liye Date aur Time selector fill karein!");
+                return;
+            }
+
+            const collectiveStamp = `${formatDateToDMY(gDate)} @ ${gTime}`;
+            let updates = {};
+            let count = 0;
+
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const d = admitCardDraftCache[k];
+                if(d.year === py && d.termName === pt) {
+                    updates[`${k}/publishStamp`] = collectiveStamp;
+                    count++;
+                }
+            });
+
+            if(count === 0) {
+                alert("Is filter criteria me koi draft card nahi mila.");
+                return;
+            }
+
+            database.ref('admit_card_drafts').update(updates, (err) => {
+                if(!err) { 
+                    alert(`Safaltapoorvak ${count} cards ko ek sath '${collectiveStamp}' par publish kar diya gaya hai!`); 
+                    renderPublishDraftSection(); 
+                }
+            });
+        }
+
+        function triggerDirectViewAdmit(key, isTeacherScope) { 
+            if(admitCardDraftCache[key]) renderPopUpCardModal(admitCardDraftCache[key], isTeacherScope); 
+        }
+
+        function renderPopUpCardModal(card, isTeacherScope) {
+            activeModalObjectPointer = card;
+            document.getElementById('mModalTitle').innerText = `${card.termName} EXAMINATION ${card.year}`;
+            document.getElementById('mAdmitId').innerText = card.admitCardId;
+            document.getElementById('mRoll').innerText = String(card.rollNo).padStart(2, '0');
+            document.getElementById('mName').innerText = card.name;
+            document.getElementById('mClass').innerText = formatClassOrdinalSuffix(card.classNum);
+            document.getElementById('mFather').innerText = card.fatherName || '-';
+            document.getElementById('mDob').innerText = formatDateToDMY(card.dob);
+
+            if(isTeacherScope) {
+                document.getElementById('modalPrintBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('modalPrintBtn').classList.add('hidden');
+            }
+
+            const tbody = document.getElementById('modalRoutineBody'); tbody.innerHTML = "";
+            card.routine.forEach(r => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-left pl-3 font-bold py-2.5 uppercase text-slate-900">${r.name}</td>
+                        <td class="font-mono text-center py-2.5 text-slate-900">${r.code || '101'}</td>
+                        <td class="font-mono text-center font-bold bg-slate-50 py-2.5 text-slate-900">${formatDateToDMY(r.date)}</td>
+                        <td class="text-center font-bold py-2.5 text-slate-900">${r.day || '- - -'}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('cardModal').classList.remove('hidden');
+        }
+
+        function triggerDirectPdfPrintWindow() {
+            if(!activeModalObjectPointer) return;
+            const d = activeModalObjectPointer;
+            const printConsole = document.getElementById('printBatchContainer');
+            printConsole.innerHTML = "";
+            
+            let tableRows = "";
+            d.routine.forEach(r => {
+                tableRows += `
+                    <tr style="border-bottom: 1px solid #cbd5e1;">
+                        <td style="text-align: left; padding: 10px 12px; font-weight: bold; font-size:13px; color: #000 !important; text-transform:uppercase;">${r.name}</td>
+                        <td style="text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; padding: 10px; font-size:13px; font-family: monospace; color: #000 !important;">${r.code || '101'}</td>
+                        <td style="text-align: center; border-right: 1px solid #cbd5e1; padding: 10px; font-size:13px; font-weight: bold; background: #fafafa !important; color: #000 !important;">${formatDateToDMY(r.date)}</td>
+                        <td style="text-align: center; padding: 10px; font-weight: bold; font-size:13px; color: #000 !important;">${r.day || '- - -'}</td>
+                    </tr>
+                `;
+            });
+
+            printConsole.innerHTML = `
+                <div style="background: #ffffff !important; color: #000000 !important; width: 100%; padding: 15px; border: 3px double #0f172a; border-radius: 6px; box-sizing: border-box; font-family: sans-serif;">
+                    <div style="text-align: center; border-bottom: 2px solid #000000; padding-bottom: 10px; margin-bottom: 15px; display: flex; flex-direction: row; align-items: center; justify-content: center; position: relative;">
+                        <img src="logo.png" style="width: 70px; height: 70px; border-radius: 50%; border: 1px solid #000000; background: #fff; object-fit: contain; position: absolute; left: 5px; top: 0px;">
+                        <div style="margin-left: 80px; text-align: center; width: 100%;">
+                            <h2 style="font-size: 24px; font-weight: 950; color: #1e3a8a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">SUPER EDUCATED CLASS</h2>
+                            <p style="font-size: 13px; font-weight: 800; color: #334155; margin: 4px 0 0 0; text-transform: uppercase;">Shekhpur Daud, Azamgarh, Uttar Pradesh</p>
+                            <div style="background: #e0e7ff; color: #1e3a8a; font-size: 12px; font-weight: 900; padding: 4px 15px; border: 1.5px solid #1e3a8a; border-radius: 4px; display: inline-block; margin-top: 8px; text-transform: uppercase;">
+                                ${d.termName} EXAMINATION ${d.year}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px;">
+                        <div style="width: 73%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px;">
+                            <div><strong style="color:#64748b; font-size:9px; display:block;">STUDENT NAME</strong> <span style="font-weight:900; font-size:14px; color:#0f172a; text-transform:uppercase;">${d.name}</span></div>
+                            <div><strong style="color:#64748b; font-size:9px; display:block;">CLASS / STANDARD</strong> <span style="font-weight:900; font-size:14px;">${formatClassOrdinalSuffix(d.classNum)}</span></div>
+                            <div><strong style="color:#64748b; font-size:9px; display:block;">FATHER'S NAME</strong> <span style="font-weight:bold; font-size:13px; text-transform:uppercase;">${d.fatherName || '-'}</span></div>
+                            <div><strong style="color:#64748b; font-size:9px; display:block;">ROLL NUMBER</strong> <span style="font-weight:900; font-size:14px;">${String(d.rollNo).padStart(2,'0')}</span></div>
+                            <div><strong style="color:#64748b; font-size:9px; display:block;">ADMIT PASS ID</strong> <span style="font-weight:bold; font-family:monospace; background:#e2e8f0; padding:1px 4px; border-radius:3px; font-size:12px;">${d.admitCardId || '-'}</span></div>
+                            <div><strong style="color:#64748b; font-size:9px; display:block;">DATE OF BIRTH</strong> <span style="font-weight:900; background:#fef08a; padding:0 4px; border-radius:2px; font-size:12px;">${formatDateToDMY(d.dob)}</span></div>
+                        </div>
+                        <div style="width: 24%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: #f8fafc;">
+                            <div style="width: 90px; height: 110px; border: 1px solid #94a3b8; background: #fff; padding:2px; border-radius:4px;">
+                                <img src="${d.photo || 'placeholder.png'}" style="width:100%; height:100%; object-fit:cover;">
+                            </div>
+                            <div style="height:32px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #cbd5e1; border-radius:3px; width:90px; margin-top:5px; background:#fff;">
+                                ${d.candidateSign ? `<img src="${d.candidateSign}" style="height:28px; max-width:100%; object-fit:contain;">` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #0f172a; margin-bottom: 12px;">
+                        <thead>
+                            <tr style="background: #f1f5f9; font-weight: 800; border-bottom: 1px solid #0f172a;">
+                                <th style="text-align: left; padding: 8px; font-size:12px;">EXAM SUBJECT</th>
+                                <th style="width: 15%; text-align:center; font-size:12px;">CODE</th>
+                                <th style="width: 25%; text-align:center; font-size:12px;">DATE (DD/MM/YYYY)</th>
+                                <th style="width: 20%; text-align:center; font-size:12px;">DAY</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 10px; border-radius: 4px; font-size: 13px; color: #000000; font-weight: bold; line-height:1.5; margin-bottom:15px;">
+                        <strong style="color: #b45309; text-transform:uppercase; font-size:14px; display:block; margin-bottom:4px;">⚠️ Important Instructions for Candidates:</strong>
+                        1. Students must carry this physical printout of the Admit Card to the examination hall.
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 11px; font-weight: bold;">
+                        <div>
+                            <div style="height: 45px; display: flex; align-items: flex-end; justify-content: center;"><div style="width: 80px; border-bottom: 1px dotted #94a3b8;"></div></div>
+                            <span style="color:#475569; display:block; margin-top:3px; text-transform:uppercase; font-size:10px;">Candidate Sign</span>
+                        </div>
+                        <div>
+                            <div style="height: 45px; display: flex; align-items: flex-end; justify-content: center;"><div style="width: 80px; border-bottom: 1px dotted #94a3b8;"></div></div>
+                            <span style="color:#475569; display:block; margin-top:3px; text-transform:uppercase; font-size:10px;">Class Teacher Sign</span>
+                        </div>
+                        <div>
+                            <div style="height: 45px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;">
+                                <img src="${ecaSignatureGlobalBase64}" style="height: 42px; max-width: 100%; object-fit: contain;">
+                            </div>
+                            <span style="display: block; margin-top: 3px; border-top: 2px solid #0f172a; width: 110px; margin-left: auto; margin-right: auto; padding-top:2px; text-transform:uppercase; font-weight: 900; font-size:13px; color:#000;">Controller Sig</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            printConsole.classList.remove('hidden');
+            setTimeout(() => {
+                window.print();
+                printConsole.classList.add('hidden');
+            }, 300);
+        }
+
+        function executeModalBatchPrintTrigger() {
+            const pYear = document.getElementById('modalPrintYear').value;
+            const pTerm = document.getElementById('modalPrintTerm').value;
+            const printConsole = document.getElementById('printBatchContainer');
+            printConsole.innerHTML = "";
+            let counter = 0;
+
+            let gridElement = document.createElement('div');
+            gridElement.className = "print-grid-layout";
+
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const d = admitCardDraftCache[k];
+                if (d.year === pYear && d.termName === pTerm) {
+                    const approvalKey = `${d.classNum}_${d.rollNo}_${pTerm.replace(/\s+/g, '_')}`;
+                    const isApproved = approvalMatrixCache[approvalKey]?.approved || false;
+                    
+                    if (isApproved) {
+                        counter++;
+                        let tableRows = "";
+                        d.routine.forEach(r => {
+                            tableRows += `
+                                <tr style="border-bottom: 1px solid #cbd5e1;">
+                                    <td style="text-align: left; padding: 6px 8px; font-weight: bold; font-size:12px; color: #000 !important; text-transform:uppercase;">${r.name}</td>
+                                    <td style="text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; padding: 6px; font-size:11px; font-family: monospace; color: #000 !important;">${r.code || '101'}</td>
+                                    <td style="text-align: center; border-right: 1px solid #cbd5e1; padding: 6px; font-size:11px; font-weight: bold; background: #fafafa !important; color: #000 !important;">${formatDateToDMY(r.date)}</td>
+                                    <td style="text-align: center; padding: 6px; font-weight: bold; font-size:11px; color: #000 !important;">${r.day || '- - -'}</td>
+                                </tr>
+                            `;
+                        });
+
+                        gridElement.innerHTML += `
+                            <div class="print-card-wrapper" style="background: #ffffff !important; color: #000000 !important; width: 100%; padding: 12px; border: 3px double #0f172a; border-radius: 6px; box-sizing: border-box; font-family: sans-serif; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                                <div style="text-align: center; border-bottom: 2px solid #000000; padding-bottom: 6px; margin-bottom: 10px; display: flex; flex-direction: row; align-items: center; justify-content: center; position: relative; min-h: 65px;">
+                                    <img src="logo.png" style="width: 60px; height: 60px; border-radius: 50%; border: 1px solid #000000; background: #fff; object-fit: contain; position: absolute; left: 0px; top: 0px;">
+                                    <div style="margin-left: 65px; text-align: center; width: 100%;">
+                                        <h2 style="font-size: 16px; font-weight: 950; color: #1e3a8a; margin: 0; text-transform: uppercase;">SUPER EDUCATED CLASS</h2>
+                                        <p style="font-size: 10px; font-weight: 800; color: #475569; margin: 2px 0 0 0; text-transform: uppercase;">Shekhpur Daud, Azamgarh, Uttar Pradesh</p>
+                                        <div style="background: #e0e7ff; color: #1e3a8a; font-size: 9px; font-weight: 900; padding: 2px 10px; border: 1px solid #1e3a8a; border-radius: 3px; display: inline-block; margin-top: 4px; text-transform: uppercase;">
+                                            ${d.termName} - ${d.year}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 10px;">
+                                    <div style="width: 65%; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 3px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px;">
+                                        <div><strong style="color:#64748b; font-size:8px; display:inline;">NAME:</strong> <span style="font-weight:900; color:#0f172a; text-transform:uppercase;">${d.name}</span></div>
+                                        <div><strong style="color:#64748b; font-size:8px; display:inline;">CLASS:</strong> <span style="font-weight:900;">${formatClassOrdinalSuffix(d.classNum)}</span></div>
+                                        <div><strong style="color:#64748b; font-size:8px; display:inline;">FATHER:</strong> <span style="font-weight:bold; text-transform:uppercase;">${d.fatherName || '-'}</span></div>
+                                        <div><strong style="color:#64748b; font-size:8px; display:inline;">ROLL NO:</strong> <span style="font-weight:900;">${String(d.rollNo).padStart(2,'0')}</span></div>
+                                        <div><strong style="color:#64748b; font-size:8px; display:inline;">DOB:</strong> <span style="font-weight:900; background:#fef08a; padding: 0 2px;">${formatDateToDMY(d.dob)}</span></div>
+                                        <div><strong style="color:#64748b; font-size:8px; display:inline;">ADMIT ID:</strong> <span style="font-weight:bold; font-family:monospace; background:#e2e8f0; padding:0 4px; border-radius:3px;">${d.admitCardId || '-'}</span></div>
+                                    </div>
+                                    <div style="width: 33%; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #e2e8f0; padding: 4px; border-radius: 4px; background: #f8fafc;">
+                                        <div style="width: 76px; height: 88px; border: 1px solid #94a3b8; background: #fff; padding:2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                            <img src="${d.photo || 'placeholder.png'}" style="width:100%; height:100%; object-fit:cover;">
+                                        </div>
+                                        <div style="height:30px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #cbd5e1; width:76px; margin-top:5px; background:#fff;">
+                                            ${d.candidateSign ? `<img src="${d.candidateSign}" style="height:26px; max-width:100%; object-fit:contain;">` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <table style="width: 100%; border-collapse: collapse; border: 1px solid #0f172a; margin-bottom: 8px;">
+                                    <thead>
+                                        <tr style="background: #f1f5f9; font-weight: 800; border-bottom: 1px solid #0f172a;">
+                                            <th style="text-align: left; padding: 4px; font-size:11px;">SUBJECT</th>
+                                            <th style="width: 15%; text-align:center; font-size:11px;">CODE</th>
+                                            <th style="width: 28%; text-align:center; font-size:11px;">DATE</th>
+                                            <th style="width: 22%; text-align:center; font-size:11px;">DAY</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${tableRows}</tbody>
+                                </table>
+                                <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 6px; border-radius: 4px; font-size: 12px; color: #000000; font-weight: bold; line-height:1.4; margin-bottom:8px;">
+                                    <strong style="color: #b45309; text-transform:uppercase; font-size:12px; display:block; margin-bottom:2px;">⚠️ Instructions:</strong>
+                                    1. Physical Admit card is mandatory.
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; margin-top: 5px; padding-top: 6px; border-top: 1px dashed #cbd5e1; font-size: 9px; font-weight: bold;">
+                                    <div>
+                                        <div style="height: 25px; display: flex; align-items: flex-end; justify-content: center;"><div style="width: 50px; border-bottom: 1px dotted #94a3b8;"></div></div>
+                                        <span style="color:#475569; display:block; margin-top:2px; font-size:8px;">Candidate</span>
+                                    </div>
+                                    <div>
+                                        <div style="height: 25px; display: flex; align-items: flex-end; justify-content: center;"><div style="width: 50px; border-bottom: 1px dotted #94a3b8;"></div></div>
+                                        <span style="color:#475569; display:block; margin-top:2px; font-size:8px;">Teacher</span>
+                                    </div>
+                                    <div>
+                                        <div style="height: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;">
+                                            <img src="${ecaSignatureGlobalBase64}" style="height: 23px; max-width: 100%; object-fit: contain;">
+                                        </div>
+                                        <span style="display: block; margin-top: 2px; border-top: 1px solid #0f172a; width: 70px; margin-left: auto; margin-right: auto; padding-top:1px; font-weight: 900; font-size:10px; color:#000;">Controller</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            if (counter === 0) { 
+                alert("Is selected Year aur Term ke liye koi APPROVED cards available nahi hain. Pehle Verification Table me jaakar target list approve karein."); 
+                return; 
+            }
+            
+            printConsole.appendChild(gridElement);
+            closePrintSelectionModal();
+            printConsole.classList.remove('hidden'); 
+            setTimeout(() => {
+                window.print(); 
+                printConsole.classList.add('hidden');
+            }, 300);
+        }
+
+        function commitAdmitPublishSchedule(instantlyFlag) {
+            database.ref('admit_publish_config').set({ isLive: instantlyFlag, timestamp: '2026 Master Live Pipeline' }, (err)=>{
+                if(!err) alert(`Global Portal Channel set Live!`);
+            });
+        }
+
+        function searchAdmitCard(e) {
+            e.preventDefault();
+            if(!globalAdmitLive) { alert("Portal Channel is currently offline."); return; }
+            const yr = document.getElementById('srcYear').value; const term = document.getElementById('srcTerm').value;
+            const cls = document.getElementById('srcClass').value; const roll = document.getElementById('srcRoll').value.trim();
+
+            let targetCard = null;
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const c = admitCardDraftCache[k];
+                if(c.year === yr && c.classNum === cls && c.termName === term && c.rollNo === roll) targetCard = c;
+            });
+            
+            if(!targetCard) { alert("Admit card record not generated."); return; }
+            
+            const approvalKey = `${cls}_${roll}_${term.replace(/\s+/g, '_')}`;
+            if(!(approvalMatrixCache[approvalKey]?.approved)) {
+                alert("Security Hold: Is Roll number ka Admit Card Examiner Controller dwara approve nahi kiya gaya h."); return;
+            }
+
+            renderPopUpCardModal(targetCard, false);
+        }
+        function closeCardModal() { document.getElementById('cardModal').classList.add('hidden'); }
+    </script>
 </body>
 </html>
