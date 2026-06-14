@@ -149,24 +149,14 @@
             <h3 class="text-sm font-black text-indigo-950 uppercase tracking-wide mb-4 text-center">🔒 Teacher Authentication</h3>
             <div class="space-y-3">
                 <div>
-    <label class="block text-xs font-bold text-slate-600 uppercase">User ID</label>
-    <input
-        type="text"
-        id="userInput"
-        placeholder="Enter User ID"
-        autocomplete="off"
-        class="w-full mt-1 p-2 border rounded text-sm font-semibold">
-</div>
-
-<div>
-    <label class="block text-xs font-bold text-slate-600 uppercase">Password</label>
-    <input
-        type="password"
-        id="passInput"
-        placeholder="Enter Password"
-        autocomplete="new-password"
-        class="w-full mt-1 p-2 border rounded text-sm">
-</div>                <div class="flex space-x-2 pt-2">
+                    <label class="block text-xs font-bold text-slate-600 uppercase">User ID</label>
+                    <input type="text" id="userInput" class="w-full mt-1 p-2 border rounded text-sm font-semibold" value="" placeholder="Enter User ID">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase">Password</label>
+                    <input type="password" id="passInput" class="w-full mt-1 p-2 border rounded text-sm" value="" placeholder="Enter Password">
+                </div>
+                <div class="flex space-x-2 pt-2">
                     <button onclick="closeAdminAuth()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded text-xs uppercase">Cancel</button>
                     <button onclick="verifyLogin()" class="flex-1 bg-indigo-950 text-white font-bold py-2 rounded text-xs uppercase tracking-wider">Verify</button>
                 </div>
@@ -278,7 +268,6 @@
         <div id="tab-add-student" class="tab-content block max-w-xl mx-auto bg-white p-6 rounded-xl shadow border space-y-4">
             <h3 class="text-xs font-black text-indigo-950 uppercase tracking-widest border-b pb-2">👤 Register New Student Profile</h3>
             
-            <!-- NEW SMART DATA FETCH ENGINE FOR AUTOFILL -->
             <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-xs space-y-2">
                 <span class="font-black text-indigo-950 block uppercase">🔄 Autofill From Previous Term/Year Data:</span>
                 <div class="grid grid-cols-4 gap-1.5 items-end">
@@ -448,7 +437,6 @@
                             <input type="date" id="sngEditDob" class="w-full p-1 border text-xs rounded" onchange="syncSingleCardLivePreviewPanel()">
                         </div>
                         
-                        <!-- Photo & Signature Edit Controls inside Edit Mode -->
                         <div class="grid grid-cols-2 gap-1 pt-1 border-t">
                             <div>
                                 <label class="text-[9px] font-black text-slate-600 block uppercase">Edit Photo</label>
@@ -485,7 +473,7 @@
                                     <option value="Hindi">Hindi</option><option value="English">English</option><option value="Mathematics">Mathematics</option><option value="Science">Science</option>
                                     <option value="G.k">G.k</option><option value="E.VS.">E.VS.</option><option value="Art">Art</option><option value="Art and G.k">Art and G.k</option>
                                 </select>
-                                <input type="text" id="sngCode2" value="102" class="p-1 border text-xs font-mono text-center">
+                                <input type="text" id="sub2Code" value="102" class="p-1 border text-xs font-mono text-center">
                                 <input type="date" id="sngDate2" onchange="computeDayString(this.value, 'sngDay2')" class="p-1 border text-xs">
                                 <input type="text" id="sngDay2" placeholder="Day" class="p-1 border text-xs text-center font-bold bg-slate-100" readonly>
                             </div>
@@ -783,7 +771,6 @@
                     </table>
                 </div>
 
-                <!-- UPDATED INSTRUCTIONS BOX AS PER YOUR REQUEST -->
                 <div class="border border-dashed border-slate-400 p-3 bg-slate-50 rounded text-[11px] text-slate-600 space-y-1 relative z-10">
                     <span class="font-bold text-indigo-950 block uppercase text-xs mb-1">⚠️ Important Instructions for Candidates:</span>
                     <p>1. Students must carry this physical printout of the Admit Card to the examination hall.</p>
@@ -865,7 +852,6 @@
             loadProfilesForApprovalReview();
         });
 
-        /* GRAMMATICALLY RESOLVED CLASS NAME FORMATTER FOR PREVIEW SCRIPT */
         function formatClassOrdinalSuffix(classValue) {
             const num = parseInt(classValue);
             if (isNaN(num)) return classValue || "-";
@@ -880,6 +866,21 @@
             const parts = dateString.split('-');
             if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
             return dateString;
+        }
+
+        // Helper function to parse 'DD/MM/YYYY @ HH:MM' string to Date object
+        function parsePublishStamp(stampString) {
+            if (!stampString) return null;
+            try {
+                const parts = stampString.split(' @ ');
+                if (parts.length !== 2) return null;
+                const dateParts = parts[0].split('/');
+                const timeParts = parts[1].split(':');
+                if (dateParts.length === 3 && timeParts.length === 2) {
+                    return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1]);
+                }
+            } catch(e) { return null; }
+            return null;
         }
 
         function initLiveHandlers() {
@@ -942,6 +943,7 @@
 
         function resetFormState() { syncLiveCanvasRoutine(); }
 
+        // Master Base64 parser
         function encodeImgToBase64(element, targetHiddenId) {
             const file = element.files[0]; const reader = new FileReader();
             reader.onloadend = function() { 
@@ -952,7 +954,6 @@
             if(file) reader.readAsDataURL(file);
         }
 
-        /* AUTOFILL PREVIOUS DATA EXTRACTOR ENGINE */
         function autoLoadPreviousStudentProfileData() {
             const searchClass = document.getElementById('fetchStuClass').value;
             const searchTerm = document.getElementById('fetchStuTerm').value;
@@ -986,9 +987,9 @@
                     document.getElementById('stuRegSignB64').value = foundMatch.studentSign;
                     document.getElementById('stuRegSignPreviewContainer').classList.remove('hidden');
                 }
-                alert(`🎉 Badhai ho! Roll No: ${searchRoll} (Class: ${searchClass}) ka saara profile data successfully yahan load ho gaya hai.`);
+                alert(`🎉 Badhai ho! Roll No: ${searchRoll} (Class: ${searchClass}) ka saara profile data load ho gaya hai.`);
             } else {
-                alert("❌ Diye gaye parameters se koi purana profile data match nahi hua. Kripya details check karein!");
+                alert("❌ Diye gaye parameters se koi purana profile data match nahi hua.");
             }
         }
 
@@ -1139,7 +1140,7 @@
             if(tbody) {
                 tbody.innerHTML = `
                     <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub1').value}</td><td class="font-mono">${document.getElementById('sngCode1').value}</td><td>${formatDateToDMY(document.getElementById('sngDate1').value)}</td><td class="font-bold">${document.getElementById('sngDay1').value || '-'}</td></tr>
-                    <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub2').value}</td><td class="font-mono">${document.getElementById('sngCode2').value}</td><td>${formatDateToDMY(document.getElementById('sngDate2').value)}</td><td class="font-bold">${document.getElementById('sngDay2').value || '-'}</td></tr>
+                    <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub2').value}</td><td class="font-mono">${document.getElementById('sub2Code').value}</td><td>${formatDateToDMY(document.getElementById('sngDate2').value)}</td><td class="font-bold">${document.getElementById('sngDay2').value || '-'}</td></tr>
                     <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub3').value}</td><td class="font-mono">${document.getElementById('sngCode3').value}</td><td>${formatDateToDMY(document.getElementById('sngDate3').value)}</td><td class="font-bold">${document.getElementById('sngDay3').value || '-'}</td></tr>
                     <tr><td class="text-left pl-2 font-bold">${document.getElementById('sngSub4').value}</td><td class="font-mono">${document.getElementById('sngCode4').value}</td><td>${formatDateToDMY(document.getElementById('sngDate4').value)}</td><td class="font-bold">${document.getElementById('sngDay4').value || '-'}</td></tr>
                 `;
@@ -1157,7 +1158,7 @@
 
             const routineData = [
                 { name: document.getElementById('sngSub1').value, date: document.getElementById('sngDate1').value, day: document.getElementById('sngDay1').value, code: document.getElementById('sngCode1').value },
-                { name: document.getElementById('sngSub2').value, date: document.getElementById('sngDate2').value, day: document.getElementById('sngDay2').value, code: document.getElementById('sngCode2').value },
+                { name: document.getElementById('sngSub2').value, date: document.getElementById('sngDate2').value, day: document.getElementById('sngDay2').value, code: document.getElementById('sub2Code').value },
                 { name: document.getElementById('sngSub3').value, date: document.getElementById('sngDate3').value, day: document.getElementById('sngDay3').value, code: document.getElementById('sngCode3').value },
                 { name: document.getElementById('sngSub4').value, date: document.getElementById('sngDate4').value, day: document.getElementById('sngDay4').value, code: document.getElementById('sngCode4').value }
             ];
@@ -1250,7 +1251,7 @@
             const routineData = [
                 { name: document.getElementById('sub1Name').value, date: document.getElementById('sub1Date').value, day: document.getElementById('sub1Day').value, code: document.getElementById('sub1Code').value },
                 { name: document.getElementById('sub2Name').value, date: document.getElementById('sub2Date').value, day: document.getElementById('sub2Day').value, code: document.getElementById('sub2Code').value },
-                { name: document.getElementById('sub3Name').value, date: document.getElementById('sub3Date').value, day: document.getElementById('sub3Date').value, code: document.getElementById('sub3Code').value },
+                { name: document.getElementById('sub3Name').value, date: document.getElementById('sub3Date').value, day: document.getElementById('sub3Day').value, code: document.getElementById('sub3Code').value },
                 { name: document.getElementById('sub4Name').value, date: document.getElementById('sub4Date').value, day: document.getElementById('sub4Day').value, code: document.getElementById('sub4Code').value }
             ];
 
@@ -1275,14 +1276,12 @@
             const card = admitCardDraftCache[key];
             if (!card) return;
             
-            if (confirm(`Kya aap sach mein ${card.name} (Roll No: ${card.rollNo}) ki profile aur admit card ko delete karna chahte hain?`)) {
+            if (confirm(`Kya aap sach mein ${card.name} (Roll No: ${card.rollNo}) ko delete karna chahte hain?`)) {
                 database.ref(`admit_card_drafts/${key}`).remove((err) => {
                     if (!err) {
                         alert("Profile successfully delete ho gayi hai.");
                         const approvalKey = `${card.classNum}_${card.rollNo}_${card.termName.replace(/\s+/g, '_')}`;
                         database.ref(`admit_approvals/${approvalKey}`).remove();
-                    } else {
-                        alert("Error: Delete karne mein koi dikkat aayi.");
                     }
                 });
             }
@@ -1362,7 +1361,7 @@
             const gTime = document.getElementById('globalPublishTime').value;
 
             if(!gDate || !gTime) {
-                alert("Kripya pehle bulk publish ke liye Date aur Time selector fill karein!");
+                alert("Please fill in the Date and Time selectors first for bulk publishing./कृपया Bulk Publish करने के लिए पहले Date और Time Selector भरें!");
                 return;
             }
 
@@ -1378,10 +1377,7 @@
                 }
             });
 
-            if(count === 0) {
-                alert("Is filter criteria me koi draft card nahi mila.");
-                return;
-            }
+            if(count === 0) { alert("Is filter criteria me koi draft card nahi mila."); return; }
 
             database.ref('admit_card_drafts').update(updates, (err) => {
                 if(!err) { 
@@ -1389,6 +1385,54 @@
                     renderPublishDraftSection(); 
                 }
             });
+        }
+
+        // CORRECTED SEARCH HANDLER ENGINE WITH TIME AND VALIDATION SECURITY LOCK
+        function searchAdmitCard(event) {
+            event.preventDefault();
+            const sYear = document.getElementById('srcYear').value;
+            const sTerm = document.getElementById('srcTerm').value;
+            const sClass = document.getElementById('srcClass').value;
+            const sRoll = document.getElementById('srcRoll').value.trim();
+
+            let targetCardMatch = null;
+            Object.keys(admitCardDraftCache).forEach(k => {
+                const draft = admitCardDraftCache[k];
+                if (draft.year === sYear && draft.termName === sTerm && draft.classNum === sClass && String(draft.rollNo) === String(sRoll)) {
+                    targetCardMatch = draft;
+                }
+            });
+
+            if (!targetCardMatch) {
+                alert("❌ No admit card record found! Please re-check the entered details.    /कोई प्रवेश पत्र (Admit Card) रिकॉर्ड नहीं मिला! कृपया विवरण (Details) दोबारा जाँचें .");
+                return;
+            }
+
+            // Lock 1: Verification Matrix Approval Status Check
+            const approvalKey = `${targetCardMatch.classNum}_${targetCardMatch.rollNo}_${sTerm.replace(/\s+/g, '_')}`;
+            const isApprovedByManagement = approvalMatrixCache[approvalKey]?.approved || false;
+
+            if (!isApprovedByManagement) {
+                alert("🔒 This admit card has not yet been verified/approved by the Management Committee/ यह प्रवेश पत्र (Admit Card) अभी तक प्रबंधन समिति द्वारा सत्यापित (Verified) / अनुमोदित (Approved) नहीं किया गया है।.");
+                return;
+            }
+
+            // Lock 2: Publish Date & Time Gate Keeper Engine
+            if (!targetCardMatch.publishStamp) {
+                alert("⏳ This card has been prepared, but it has not yet been published on the portal/यह कार्ड तैयार है, लेकिन अभी तक पोर्टल पर प्रकाशित (Publish) नहीं किया गया है।");
+                return;
+            }
+
+            const targetPublishDateTime = parsePublishStamp(targetCardMatch.publishStamp);
+            const systemCurrentLiveDateTime = new Date();
+
+            if (targetPublishDateTime && systemCurrentLiveDateTime < targetPublishDateTime) {
+                alert(`📢 You will be able to view it only!\n\n: ${targetCardMatch.publishStamp} after the scheduled date and time:.`);
+                return;
+            }
+
+            // If passes both locks -> render
+            renderPopUpCardModal(targetCardMatch, false);
         }
 
         function triggerDirectViewAdmit(key, isTeacherScope) { 
@@ -1424,6 +1468,8 @@
             });
             document.getElementById('cardModal').classList.remove('hidden');
         }
+
+        function closeCardModal() { document.getElementById('cardModal').classList.add('hidden'); activeModalObjectPointer = null; }
 
         function triggerDirectPdfPrintWindow() {
             if(!activeModalObjectPointer) return;
@@ -1515,6 +1561,7 @@
             }, 300);
         }
 
+        // Updated global bulk printing engine
         function executeModalBatchPrintTrigger() {
             const pYear = document.getElementById('modalPrintYear').value;
             const pTerm = document.getElementById('modalPrintTerm').value;
@@ -1613,47 +1660,14 @@
             });
 
             if (counter === 0) { 
-                alert("Is selected Year aur Term ke liye koi APPROVED cards available nahi hain. Pehle Verification Table me jaakar target list approve karein."); 
+                alert("Is configuration criteria mein koi approved card print queue me nahi mila."); 
                 return; 
             }
             
             printConsole.appendChild(gridElement);
-            closePrintSelectionModal();
-            printConsole.classList.remove('hidden'); 
-            setTimeout(() => {
-                window.print(); 
-                printConsole.classList.add('hidden');
-            }, 300);
+            printConsole.classList.remove('hidden');
+            setTimeout(() => { window.print(); printConsole.classList.add('hidden'); }, 400);
         }
-
-        function commitAdmitPublishSchedule(instantlyFlag) {
-            database.ref('admit_publish_config').set({ isLive: instantlyFlag, timestamp: '2026 Master Live Pipeline' }, (err)=>{
-                if(!err) alert(`Global Portal Channel set Live!`);
-            });
-        }
-
-        function searchAdmitCard(e) {
-            e.preventDefault();
-            if(!globalAdmitLive) { alert("Portal Channel is currently offline."); return; }
-            const yr = document.getElementById('srcYear').value; const term = document.getElementById('srcTerm').value;
-            const cls = document.getElementById('srcClass').value; const roll = document.getElementById('srcRoll').value.trim();
-
-            let targetCard = null;
-            Object.keys(admitCardDraftCache).forEach(k => {
-                const c = admitCardDraftCache[k];
-                if(c.year === yr && c.classNum === cls && c.termName === term && c.rollNo === roll) targetCard = c;
-            });
-            
-            if(!targetCard) { alert("Admit card record not generated."); return; }
-            
-            const approvalKey = `${cls}_${roll}_${term.replace(/\s+/g, '_')}`;
-            if(!(approvalMatrixCache[approvalKey]?.approved)) {
-                alert("Security Hold: Is Roll number ka Admit Card Examiner Controller dwara approve nahi kiya gaya h."); return;
-            }
-
-            renderPopUpCardModal(targetCard, false);
-        }
-        function closeCardModal() { document.getElementById('cardModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
